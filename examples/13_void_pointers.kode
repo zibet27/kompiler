@@ -1,0 +1,36 @@
+alien fun print_int{ x: i32 };
+alien fun print_double{ d: f64 };
+
+// Generic swap function using void pointers
+fun swap_bytes{ a: void*, b: void*, size: i32 } (
+    char* temp = a ~> char*;
+    char* temp2 = b ~> char*;
+    char tmp;
+
+    // Swap byte by byte
+    for { i32 i = 0; i < size; i++ } (
+        tmp = temp[i];
+        temp[i] = temp2[i];
+        temp2[i] = tmp;
+    );
+);
+
+fun main{}: i32 (
+    i32 a = 5;
+    i32 b = 10;
+
+    // Use generic swap for ints
+    swap_bytes{ &a, &b, 4 };
+    print_int{ a };  // Should print 10
+    print_int{ b };  // Should print 5
+
+    f64 x = 3.14;
+    f64 y = 2.71;
+
+    // Use same function for doubles
+    swap_bytes{ &x, &y, 8 };
+    print_double{ x };  // Should print 2.71
+    print_double{ y };  // Should print 3.14
+
+    0;
+);

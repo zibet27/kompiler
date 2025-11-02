@@ -1,0 +1,21 @@
+alien fun print_string{ s: char* };
+
+fun main{}: i32 (
+    i32 day = 3;
+    char* day_name = switch { day } (
+        1 -> "Monday";
+        2 -> "Tuesday";
+        3 -> "Wednesday";
+        4 -> "Thursday";
+        5 -> "Friday";
+        6 -> "Saturday";
+        7 -> "Sunday";
+        else -> "Invalid day";
+    );
+
+    print_string{ day_name };
+
+    0;
+);
+
+// EXPECTED OUTPUT: Wednesday

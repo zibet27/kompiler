@@ -1,0 +1,124 @@
+Program -> TopDeclList .
+TopDeclList -> TopDeclList TopDecl | TopDecl .
+
+TopDecl -> FunDef | FunDecl | AlienFunDecl | ObjectDecl | ObjectDef | TypeAlias | GlobalVarDecl .
+
+FunDef -> FUN IDENT LBRACE ParamsOpt RBRACE COLON Type LPAREN ItemListOpt RPAREN SEMICOLON .
+FunDecl -> FUN IDENT LBRACE ParamsOpt RBRACE COLON Type SEMICOLON .
+AlienFunDecl -> ALIEN FUN IDENT LBRACE ParamsOpt RBRACE RetTypeOpt SEMICOLON .
+RetTypeOpt -> COLON Type | .
+
+ObjectDecl -> OBJECT IDENT SEMICOLON .
+ObjectDef -> OBJECT IDENT LPAREN FieldDeclsOpt RPAREN SEMICOLON .
+FieldDeclsOpt -> FieldDecls | .
+FieldDecls -> FieldDecls FieldDecl | FieldDecl .
+FieldDecl -> IDENT COLON Type SEMICOLON .
+
+TypeAlias -> TYPEALIAS IDENT ASSIGN LBRACE ParamTypeListOpt RBRACE ARROW Type SEMICOLON .
+ParamTypeListOpt -> ParamTypeList | .
+ParamTypeList -> ParamTypeList COMMA Type | Type .
+
+GlobalVarDecl -> Type DeclaratorList SEMICOLON .
+DeclaratorList -> DeclaratorList COMMA Declarator | Declarator .
+Declarator -> IDENT ArraySuffixOpt InitOpt .
+ArraySuffixOpt -> ArraySuffixOpt LBRACKET Expr RBRACKET | .
+InitOpt -> WITH Expr | ASSIGN Expr | .
+
+ParamsOpt -> Params | .
+Params -> ParamList .
+ParamList -> ParamList COMMA Param | Param .
+Param -> IDENT COLON Type .
+
+Type -> BaseType PtrStars
+     | IDENT PtrStars
+     | FuncType .
+BaseType -> VOID | I32 | U8 | F64 .
+FuncType -> LBRACE ParamTypeListOpt RBRACE ARROW Type .
+
+ItemListOpt -> ItemList | .
+ItemList -> ItemList Item | Item .
+Item -> LocalVarDecl SEMICOLON
+     | Expr SEMICOLON
+     | SKIP SEMICOLON
+     | STOP SEMICOLON
+     | WhileStmt
+     | DoWhileStmt
+     | ForStmt .
+
+LocalVarDecl -> Type DeclaratorList .
+BlockExpr -> LPAREN ItemListOpt RPAREN .
+
+IfExpr -> IF LBRACE Expr RBRACE BlockExpr ELSE BlockExpr .
+
+WhileStmt -> WHILE LBRACE Expr RBRACE BlockExpr .
+DoWhileStmt -> DO BlockExpr WHILE LBRACE Expr RBRACE SEMICOLON .
+
+ForStmt -> FOR LBRACE ForInitOpt SEMICOLON ForCondOpt SEMICOLON ForIncrOpt RBRACE BlockExpr SEMICOLON .
+ForInitOpt -> LocalVarDecl | Expr | .
+ForCondOpt -> Expr | .
+ForIncrOpt -> Expr | .
+
+Expr -> Assign .
+Assign -> LValue ASSIGN Assign | OrExpr .
+LValue -> Postfix .
+
+OrExpr -> OrExpr OROR AndExpr | AndExpr .
+AndExpr -> AndExpr ANDAND BitOrExpr | BitOrExpr .
+BitOrExpr -> BitOrExpr PIPE BitXorExpr | BitXorExpr .
+BitXorExpr -> BitXorExpr CARET BitAndExpr | BitAndExpr .
+BitAndExpr -> BitAndExpr AMP Equality | Equality .
+Equality -> Equality EQEQ Rel | Equality BANGEQ Rel | Rel .
+Rel -> Rel LT Shift | Rel GT Shift | Rel LTE Shift | Rel GTE Shift | Shift .
+Shift -> Shift SHL Add | Shift SHR Add | Add .
+Add -> Add PLUS Mul | Add MINUS Mul | Mul .
+Mul -> Mul STAR Factor | Mul SLASH Factor | Mul PERCENT Factor | Factor .
+
+Factor -> Postfix | Prefixed .
+Prefixed -> BANG Factor
+         | TILDE Factor
+         | PLUS Factor
+         | MINUS Factor
+         | PLUSPLUS Factor
+         | MINUSMINUS Factor
+         | STAR Factor
+         | AMP Factor .
+
+Prefix -> Postfix
+      | BANG Prefix | TILDE Prefix | PLUS Prefix | MINUS Prefix
+      | PLUSPLUS Prefix | MINUSMINUS Prefix
+      | STAR Prefix | AMP Prefix .
+
+Postfix -> Postfix PLUSPLUS
+        | Postfix MINUSMINUS
+        | Postfix LBRACKET Expr RBRACKET
+        | Postfix DOT IDENT
+        | Postfix ARROW IDENT
+        | Postfix LBRACE ArgsOpt RBRACE
+        | Simple .
+
+Simple -> CastExpr | IDENT | PrimaryNoIdent .
+CastExpr -> IDENT TILDE_GT Type .
+ArgsOpt -> ArgList | .
+ArgList -> ArgList COMMA Expr | Expr .
+
+Primary -> BlockExpr
+        | IfExpr
+        | LPAREN Expr RPAREN
+        | IDENT
+        | INT
+        | CHAR_LIT
+        | STRING_LIT
+        | SwitchExpr .
+
+PrimaryNoIdent -> BlockExpr
+               | IfExpr
+               | LPAREN Expr RPAREN
+               | INT
+               | CHAR_LIT
+               | STRING_LIT
+               | SwitchExpr .
+
+SwitchExpr -> SWITCH LPAREN Expr RPAREN LBRACE CaseList DefaultCase RBRACE .
+CaseList -> CaseList Case | .
+Case -> INT ARROW Expr SEMICOLON .
+DefaultCase -> ELSE ARROW Expr SEMICOLON .

@@ -1,0 +1,6 @@
+fun main{}: i32 (
+    i32 x = 10;
+    u8 y = '@'; // Valid
+    u8 invalid = '#$'; // Invalid character literal (should be single character)
+    x;
+);

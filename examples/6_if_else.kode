@@ -1,0 +1,40 @@
+alien fun print_int{ x: i32 };
+
+fun main{}: i32 (
+    i32 a = 10;
+    i32 b = 20;
+    i32 max;
+
+    // Simple if statement
+    if { a > b } (
+        max = a;
+        print_int{ -1 };
+    );
+
+    // If-else statement
+    max = if { a > b } (
+        a;
+    ) else (
+        b;
+    );
+
+    print_int{ max }; // EXPECTED OUTPUT: 20 (since b is greater)
+
+    // If-else-if ladder
+    if { a > b } (
+        max = a;
+        print_int{ -2 };
+    ) else if { a == b } (
+        max = a;  // or b, they're equal
+        print_int{ -3 };
+    ) else (
+        max = b;
+        print_int{ 44 };
+    );
+
+    print_int{ max };
+
+    0;
+);
+
+// EXPECTED OUTPUT: 20 20

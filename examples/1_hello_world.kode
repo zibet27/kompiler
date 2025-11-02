@@ -1,0 +1,8 @@
+alien fun print_string{ s: char* };  // Declaration only (external function)
+
+fun main{}: i32 (
+    print_string("Hello, World!");
+    0;
+);
+
+// EXPECTED OUTPUT: Hello, World!

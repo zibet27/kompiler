@@ -1,0 +1,46 @@
+alien fun print_int{ x: i32 };
+
+fun main{}: i32 (
+    i32 a = 5;
+    i32 b = 3;
+
+    // Logical operators
+    i32 logical_and = (a > 0) && (b > 0);
+    i32 logical_or = (a > 10) || (b > 0);
+    i32 logical_not = !(a == b);
+
+    // Comparison operators
+    i32 equal = (a == b);
+    i32 not_equal = (a != b);
+    i32 greater = (a > b);
+    i32 less_equal = (a <= b);
+    i32 greater_equal = (a >= b);
+
+    // Bitwise operators
+    i32 bitwise_and = a & b;
+    i32 bitwise_or = a | b;
+    i32 bitwise_not = ~a;
+    i32 left_shift = a << 1;
+    i32 right_shift = a >> 1;
+
+    // Print results
+    print_int{ a };
+    print_int{ b };
+    print_int{ logical_and };
+    print_int{ logical_or };
+    print_int{ logical_not };
+    print_int{ equal };
+    print_int{ not_equal };
+    print_int{ greater };
+    print_int{ less_equal };
+    print_int{ greater_equal };
+    print_int{ bitwise_and };
+    print_int{ bitwise_or };
+    print_int{ bitwise_not };
+    print_int{ left_shift };
+    print_int{ right_shift };
+
+    0;
+);
+
+// EXPECTED OUTPUT: 5 3 1 1 1 0 1 1 1 1 1 -6 10 2

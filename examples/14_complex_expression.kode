@@ -1,0 +1,34 @@
+alien fun print_int{ x: i32 };
+alien fun print_char{ c: u8 };
+
+fun add{ a: i32, b: i32 }: i32 (
+    a + b;
+);
+
+fun main{}: i32 (
+    i32 a = 5;
+    i32 b = 10;
+    i32 c = 15;
+    i32 arr[5] with 0;
+
+    // Nested expressions with function calls
+    i32 result = add{ a * 2, b / 2 } + (c % 7);
+    print_int{ result };  // EXPECTED: 16
+
+    u8 ch = ('c');
+    print_char{ ch };  // Should print 'c'
+
+    // Complex array indexing
+    arr[ add{ 1, 2 } ] = a + b * c;
+    print_int{ arr[3] };  // EXPECTED: 155 (5 + 10 * 15)
+
+    // Complex assignment
+    result = result + a * b + c / 2;
+    print_int{ result };  // EXPECTED: 73
+
+    // Compound arithmetic
+    i32 val = ((a + b) * c) / (a - 1) + add{ a, b };
+    print_int{ val };  // EXPECTED: 71
+
+    0;
+);

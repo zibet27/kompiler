@@ -1,0 +1,36 @@
+alien fun print_int{ x: i32 };
+
+// Function declaration
+fun add{ a: i32, b: i32 }: i32;
+
+// Function with parameters and return value
+fun multiply{ a: i32, b: i32 }: i32 (
+    a * b;
+);
+
+// Function with void return type
+fun print_number{ n: i32 }: void (
+    // Implementation omitted
+);
+
+// Function with no parameters
+fun get_random{}: i32 (
+    4; // Chosen by fair dice roll
+);
+
+fun main{}: i32 (
+    i32 x = add{ 5, 7 };
+    print_int{ x };
+    i32 y = multiply{ x, 2 };
+    print_int{ y };
+    print_number{ y };
+    print_int{ get_random{} };
+    0;
+);
+
+// Function definition for earlier declaration
+fun add{ a: i32, b: i32 }: i32 (
+    a + b;
+);
+
+// EXPECTED OUTPUT: 12 24 4

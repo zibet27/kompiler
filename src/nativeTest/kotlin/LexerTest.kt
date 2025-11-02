@@ -12,7 +12,7 @@ class LexerTest {
             );
         """.trimIndent()
 
-        val tokens = Lexer(program).tokenize()
+        val tokens = LexerImpl(program).tokenize()
         // Compare simple class names for clarity and easy inference
         val kinds = tokens.map { it::class.simpleName }.toList()
 
@@ -52,7 +52,7 @@ class LexerTest {
             ); // end
         """.trimIndent()
 
-        val tokens = Lexer(program).tokenize()
+        val tokens = LexerImpl(program).tokenize()
         val kinds = tokens.map { it::class.simpleName }.toList()
         val expected = listOf(
             "Fun",
@@ -76,7 +76,7 @@ class LexerTest {
                 123;
             );
         """.trimIndent()
-        val tokens = Lexer(program).tokenize()
+        val tokens = LexerImpl(program).tokenize()
         val intTok = tokens.first { it is Token.IntLiteral }
         assertEquals("123", intTok.lexeme)
         // The literal should be on line 2, columns start..end depending on indent; check line only for stability
@@ -88,9 +88,9 @@ class LexerTest {
     @Test
     fun unexpectedCharacter_reportsPosition() {
         val program = "fun bad{ @ };"
-        val ex = assertFailsWith<LexError> { Lexer(program).tokenize().toList() }
+        val ex = assertFailsWith<LexError> { LexerImpl(program).tokenize().toList() }
         assertTrue(ex.message!!.contains("Unexpected character"))
-        // Should contain line:column
+        // Should contain the line:column
         assertTrue(Regex("\\d+:\\d+").containsMatchIn(ex.message!!))
     }
 }

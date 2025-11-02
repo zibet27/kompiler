@@ -1,0 +1,25 @@
+alien fun print_int{ x: i32 };
+alien fun print_char{ c: u8 };
+alien fun print_double{ d: f64 };
+
+fun main{}: i32 (
+    i32 i = 42;
+    f64 d = 3.14;
+
+    i32 i2 = d ~> i32;
+    f64 d2 = i ~> f64;
+
+    // Pointer casting
+    void* generic_ptr = &i;
+    i32* int_ptr = generic_ptr ~> i32*;
+
+    // Cast between pointer types
+    char* char_ptr = int_ptr ~> char*;
+
+    print_int{ i2 };  // Should print 3 (truncated)
+    print_double{ d2 };  // Should print 42.0
+    print_int{ *int_ptr };  // Should print 42
+    print_char{ *char_ptr };  // Should print '4' (ASCII value of '4')
+
+    0;
+);

@@ -1,0 +1,44 @@
+alien fun print_int{ x: i32 };
+
+fun main{}: i32 (
+    i32 i;
+    i32 sum = 0;
+
+    // For loop
+    for { i = 0; i < 10; i++ } (
+        sum = sum + i;
+    );
+    print_int{ sum };
+    print_int{ i };
+
+    // While loop
+    i = 0;
+    while { i < 10 } (
+        sum = sum + i;
+        i++;
+    );
+    print_int{ sum };
+    print_int{ i };
+
+    // Do-while loop
+    i = 0;
+    do (
+        sum = sum + i;
+        i++;
+    ) while { i < 10 };
+    print_int{ sum };
+    print_int{ i };
+
+    // Break and continue
+    for { i = 0; i < 20; i++ } (
+        if { i % 2 == 0 } skip;
+        if { i > 10 } stop;
+        sum = sum + i;
+    );
+    print_int{ sum };
+    print_int{ i };
+
+    0;
+);
+
+// EXPECTED OUTPUT: 45 10 90 10 135 10 145 11

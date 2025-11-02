@@ -1,9 +1,19 @@
 package lexer
 
+interface Lexer {
+    fun nextToken(): Token
+
+    fun tokenize(): Sequence<Token>
+}
+
+interface LexerFactory {
+    fun forSource(source: String): Lexer
+}
+
 /**
  * A simple, single-pass lexer.
  */
-class Lexer(private val source: String) {
+class LexerImpl(private val source: String) : Lexer {
     private var index = 0
     private var line = 1
     private var column = 1
@@ -56,11 +66,24 @@ class Lexer(private val source: String) {
             sb.append(c)
             advance()
         }
-        val text = sb.toString()
-        return when (text) {
+        return when (val text = sb.toString()) {
             "fun" -> Token.Fun(span = makeSpan(start))
             "void" -> Token.Void(span = makeSpan(start))
             "i32" -> Token.I32(span = makeSpan(start))
+            "u8" -> Token.U8(span = makeSpan(start))
+            "f64" -> Token.F64(span = makeSpan(start))
+            "alien" -> Token.Alien(span = makeSpan(start))
+            "object" -> Token.Object(span = makeSpan(start))
+            "typealias" -> Token.TypeAlias(span = makeSpan(start))
+            "if" -> Token.If(span = makeSpan(start))
+            "else" -> Token.Else(span = makeSpan(start))
+            "for" -> Token.For(span = makeSpan(start))
+            "while" -> Token.While(span = makeSpan(start))
+            "do" -> Token.Do(span = makeSpan(start))
+            "switch" -> Token.Switch(span = makeSpan(start))
+            "with" -> Token.With(span = makeSpan(start))
+            "skip" -> Token.Skip(span = makeSpan(start))
+            "stop" -> Token.Stop(span = makeSpan(start))
             else -> Token.Identifier(span = makeSpan(start), lexeme = text)
         }
     }
@@ -76,7 +99,51 @@ class Lexer(private val source: String) {
         return Token.IntLiteral(span = makeSpan(start), lexeme = text.toString())
     }
 
-    fun nextToken(): Token {
+    private fun lexString(start: Position): Token {
+        // opening '"' was already consumed
+        val sb = StringBuilder()
+        while (true) {
+            val ch = advance() ?: throw LexError("Unterminated string literal", start)
+            if (ch == '"') break
+            if (ch == '\\') {
+                val esc = advance() ?: throw LexError("Unterminated escape sequence", currentPosition())
+                when (esc) {
+                    'n' -> sb.append('\n')
+                    't' -> sb.append('\t')
+                    'r' -> sb.append('\r')
+                    '"' -> sb.append('"')
+                    '\\' -> sb.append('\\')
+                    else -> sb.append(esc) // keep unknown escapes as is
+                }
+            } else {
+                sb.append(ch)
+            }
+        }
+        return Token.StringLiteral(span = makeSpan(start), lexeme = sb.toString())
+    }
+
+    private fun lexChar(start: Position): Token {
+        // opening '\'' already consumed
+        val ch = advance() ?: throw LexError("Unterminated char literal", start)
+        val value = if (ch == '\\') {
+            val esc = advance() ?: throw LexError("Unterminated char escape", currentPosition())
+            when (esc) {
+                'n' -> '\n'
+                't' -> '\t'
+                'r' -> '\r'
+                '\'' -> '\''
+                '"' -> '"'
+                '\\' -> '\\'
+                else -> esc
+            }
+        } else ch
+
+        val closing = advance() ?: throw LexError("Unterminated char literal", currentPosition())
+        if (closing != '\'') throw LexError("Invalid character literal (expected closing ' )", currentPosition())
+        return Token.CharLiteral(span = makeSpan(start), lexeme = value.toString())
+    }
+
+    override fun nextToken(): Token {
         skipWhitespace()
         if (isAtEnd()) {
             return Token.EOF(span = Span(start = currentPosition(), end = currentPosition()))
@@ -88,10 +155,42 @@ class Lexer(private val source: String) {
             '}' -> Token.RBrace(span = makeSpan(start))
             '(' -> Token.LParen(span = makeSpan(start))
             ')' -> Token.RParen(span = makeSpan(start))
+            '[' -> Token.LBracket(span = makeSpan(start))
+            ']' -> Token.RBracket(span = makeSpan(start))
             ':' -> Token.Colon(span = makeSpan(start))
             ',' -> Token.Comma(span = makeSpan(start))
             ';' -> Token.Semicolon(span = makeSpan(start))
-            '+' -> Token.Plus(span = makeSpan(start))
+            '.' -> Token.Dot(span = makeSpan(start))
+            '+' -> if (peek() == '+') { advance(); Token.PlusPlus(makeSpan(start)) } else Token.Plus(makeSpan(start))
+            '-' -> when (peek()) {
+                '-' -> { advance(); Token.MinusMinus(makeSpan(start)) }
+                '>' -> { advance(); Token.Arrow(makeSpan(start)) }
+                else -> Token.Minus(makeSpan(start))
+            }
+            '*' -> Token.Star(span = makeSpan(start))
+            '%' -> Token.Percent(span = makeSpan(start))
+            '=' -> if (peek() == '=') { advance(); Token.EqualEqual(makeSpan(start)) } else Token.Assign(makeSpan(start))
+            '!' -> if (peek() == '=') { advance(); Token.BangEqual(makeSpan(start)) } else Token.Bang(makeSpan(start))
+            '~' -> if (peek() == '>') { advance(); Token.TildeGreater(makeSpan(start)) } else Token.Tilde(makeSpan(start))
+            '&' -> if (peek() == '&') { advance(); Token.AmpAmp(makeSpan(start)) } else Token.Amp(makeSpan(start))
+            '|' -> if (peek() == '|') { advance(); Token.PipePipe(makeSpan(start)) } else Token.Pipe(makeSpan(start))
+            '<' -> when (peek()) {
+                '=' -> { advance(); Token.LessEqual(makeSpan(start)) }
+                '<' -> { advance(); Token.ShiftLeft(makeSpan(start)) }
+                else -> Token.Less(makeSpan(start))
+            }
+            '>' -> when (peek()) {
+                '=' -> { advance(); Token.GreaterEqual(makeSpan(start)) }
+                '>' -> { advance(); Token.ShiftRight(makeSpan(start)) }
+                else -> Token.Greater(makeSpan(start))
+            }
+            '/' -> if (peek() == '/') {
+                // This branch should not happen due to skipWhitespace handling, but keep safe
+                while (peek() != null && peek() != '\n') advance()
+                nextToken()
+            } else Token.Slash(makeSpan(start))
+            '"' -> lexString(start)
+            '\'' -> lexChar(start)
             else -> when {
                 ch.isDigit() -> {
                     // We consumed the first digit already
@@ -114,9 +213,13 @@ class Lexer(private val source: String) {
         }
     }
 
-    fun tokenize(): Sequence<Token> = sequence {
+    override fun tokenize(): Sequence<Token> = sequence {
         do {
             val token = nextToken().also { yield(value = it) }
         } while (token !is Token.EOF)
+    }
+
+    companion object : LexerFactory {
+        override fun forSource(source: String): Lexer = LexerImpl(source)
     }
 }

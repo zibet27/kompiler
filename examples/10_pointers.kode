@@ -1,0 +1,43 @@
+alien fun print_int{ x: i32 };
+
+object Point (
+    x: i32;
+    y: i32;
+);
+
+fun swap{ a: i32*, b: i32* }: void (
+    i32 temp = *a;
+    *a = *b;
+    *b = temp;
+);
+
+fun main{}: i32 (
+    i32 a = 5;
+    i32 b = 10;
+    i32* p_int = &a;  // Pointer to integer
+
+    *p_int = 7;  // a is now 7
+    print_int{ a };  // 7
+    p_int = &b;  // p_int now points to b
+    print_int{ *p_int };  // 10
+
+    swap{ &a, &b };  // Pass using pointers
+    print_int{ a };  // 10
+    print_int{ b };  // 7
+
+    // Pointers to structs
+    Point pt;
+    Point* p_pt = &pt;
+
+    // Arrow operator for struct pointer access
+    p_pt->x = 3;
+    print_int{ p_pt->x };  // 3
+
+    // Pointer to pointer
+    i32** pp_int = &p_int;
+    print_int{ **pp_int };  // 10
+    **pp_int = 15;  // Change value through pointer to pointer
+    print_int{ a };  // 15
+
+    0;
+);

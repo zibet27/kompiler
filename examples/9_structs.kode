@@ -1,0 +1,44 @@
+alien fun print_int{ x: i32 };
+
+// Struct declaration
+object Point (
+    x: i32;
+    y: i32;
+);
+
+// Forward declaration
+object Rectangle;
+
+// Struct definition with a previously forward-declared type
+object Rectangle(
+    top_left: Point;
+    bottom_right: Point;
+);
+
+fun print_point{ p: Point } (
+    print_int{ p.x }; // Print x coordinate
+    print_int{ p.y }; // Print y coordinate
+);
+
+fun print_rectangle{ rect: Rectangle } (
+    print_point{ rect.top_left }; // Print top-left point
+    print_point{ rect.bottom_right }; // Print bottom-right point
+);
+
+fun main{}: i32 (
+    Point p;
+    p.x = 10;
+    p.y = 20;
+    print_point{ p };
+
+    Rectangle rect;
+    rect.top_left.x = 0;
+    rect.top_left.y = 0;
+    rect.bottom_right.x = 100;
+    rect.bottom_right.y = 100;
+    print_rectangle{ rect };
+
+    0;
+);
+
+// EXPECTED OUTPUT: 10 20 0 0 100 100

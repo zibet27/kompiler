@@ -1,0 +1,36 @@
+alien fun print_int{ x: i32 };
+alien fun print_char{ c: u8 };
+alien fun print_double{ d: f64 };
+
+i32 global_var = 10;  // Global variable with initialization
+u8 global_array[10] with ' ';  // Global array
+
+fun main{}: i32 (
+    i32 a;      // Declaration without initialization
+    i32 b = 5;  // Declaration with initialization
+    f64 c = 3.14;  // Double type
+    u8 d = 'x';  // Char type
+    
+    i32 nums[5] with 0;  // Array declaration
+    nums[0] = 1;  // Array indexing
+
+    print_int{ b };
+
+    i32 *ptr = &b;  // Pointer declaration
+    *ptr = 7;
+
+    i32 x = 1, y = 2, z = 3;  // Multiple variable declarations
+
+    print_int{ b };
+    print_double{ c };
+    print_char{ d };
+    print_int{ nums[0] };
+    print_int{ *ptr };
+    print_int{ x };
+    print_int{ y };
+    print_int{ z };
+
+    0;
+);
+
+// EXPECTED OUTPUT: 5 7 3.14 x 1 7 1 2 3

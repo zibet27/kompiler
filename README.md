@@ -1,6 +1,6 @@
 # Kompiler 🧩
 
-**Kompiler** is a small C-like compiler written in **Kotlin Multiplatform**.  
+**Kompiler** is a small compiler for a simple **Kode** programming language written in **Kotlin Multiplatform**.  
 It translates a simple, statically typed language into **WebAssembly (WASM)** and can run both on the **JVM** and **in the browser**.
 
 > A compiler that runs in your browser, visualizes its IR, and lets you play with optimizations — because learning compilers should be interactive.
@@ -27,18 +27,18 @@ The multiplatform approach keeps the compiler logic shared and platform-independ
 
 ## 📜 Example
 
-```c
-int add(int a, int b) {
-    return a + b;
-}
+```
+fun add{ a: i32, b: i32 }: i32 (
+    a + b;
+);
 
-int main() {
-    return add(2, 3);
-}
+fun main{}: void (
+    add{ 2, 3 };
+);
 ```
 
 ```bash
-$ kompiler example.k -o example.wasm
+$ kompiler example.kode -o example.wasm
 $ wasmtime example.wasm
 # => 5
 ```
