@@ -35,7 +35,6 @@ kotlin {
         nativeMain.dependencies {
             implementation(libs.kotlinxSerializationJson)
             implementation(libs.kotlinxIoCore)
-            //implementation(libs.kotlinxIoFiles)
         }
         nativeTest.dependencies {
             implementation(kotlin("test"))

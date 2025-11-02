@@ -1,9 +1,10 @@
 package parser
 
-import lexer.LexerFactory
-import lexer.LexerImpl
 import lexer.Token
 import lexer.type
+import parser.generator.Action
+import parser.generator.NonTerminal
+import parser.generator.ParsingTable
 
 // A node in the parse tree (for demonstration)
 sealed class ParseNode {
@@ -11,9 +12,8 @@ sealed class ParseNode {
     data class Leaf(val token: Token) : ParseNode()
 }
 
-class Parser(
-    private val table: ParsingTable
-) {
+// LR(1) parser
+class Parser(private val table: ParsingTable) {
 
     fun parse(tokens: Sequence<Token>): ParseNode {
         val stateStack = ArrayDeque<Int>()
@@ -42,7 +42,6 @@ class Parser(
 
                     stateStack.addLast(nextState)
                     nodeStack.addLast(ParseNode.Inner(action.rule.lhs, children))
-                    println("GOTO from state $nextStateForGoto with ${action.rule.lhs} to state $nextState")
                 }
                 is Action.Accept -> return nodeStack.single()
                 null -> error("Syntax Error: Unexpected token $currentToken in state $currentState.")

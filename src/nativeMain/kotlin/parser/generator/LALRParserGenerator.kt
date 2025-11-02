@@ -1,21 +1,28 @@
-package parser
+package parser.generator
 
+import kotlinx.serialization.Serializable
 import lexer.TokenType
+import kotlin.collections.iterator
+import kotlin.collections.plus
 import kotlin.collections.set
 
+@Serializable
 sealed class Action {
+    @Serializable
     data class Shift(val state: Int) : Action()
+
+    @Serializable
     data class Reduce(val rule: GrammarRule) : Action()
+
+    @Serializable
     data object Accept : Action()
 }
 
+@Serializable
 data class ParsingTable(
     val actionTable: List<Map<TokenType, Action>>,
-    val gotoTable: List<Map<NonTerminal, Int>>,
-    val grammar: Grammar
+    val gotoTable: List<Map<NonTerminal, Int>>
 )
-
-typealias StateCollection = List<State>
 
 class LALRParserGenerator(private val grammar: Grammar) {
     private val firstSets: Map<Symbol, Set<TokenType?>> = buildMap {
@@ -31,26 +38,22 @@ class LALRParserGenerator(private val grammar: Grammar) {
             for (rule in grammar.augmentedRules) {
                 val lhsFirst = firstSets[rule.lhs] as MutableSet
                 val oldSize = lhsFirst.size
-                val rhsFirst = computeFirstOfSequence(symbols = rule.rhs)
+                val rhsFirst = first(symbols = rule.rhs)
                 lhsFirst.addAll(rhsFirst)
                 if (lhsFirst.size > oldSize) {
                     changed = true
                 }
             }
         }
-        println("DONE")
     }
 
     val parsingTable: ParsingTable by lazy {
-        println("Building parsing table...")
         val (lr1States, lr1Transitions) = buildLR1CanonicalCollection()
-        println("Finished building parsing table")
         val (lalrStates, lr1ToLalrMap) = lr1States.mergeToLALR()
-        println("Finished merging LR(1) states ${lr1States.size} -> ${lalrStates.size}")
         buildLALRTables(lr1States, lalrStates, lr1Transitions, lr1ToLalrMap)
     }
 
-    private fun computeFirstOfSequence(symbols: List<Symbol>): Set<TokenType?> = buildSet {
+    internal fun first(symbols: List<Symbol>): Set<TokenType?> = buildSet {
         for (symbol in symbols) {
             val symbolFirst = firstSets[symbol]!!
             for (symbolAfterDot in symbolFirst) {
@@ -63,7 +66,7 @@ class LALRParserGenerator(private val grammar: Grammar) {
         add(null) // Add epsilon
     }
 
-    private fun State.closure(): State {
+    internal fun State.closure(): State {
         val closureSet = this.toMutableSet()
         val worklist = this.toMutableList()
 
@@ -75,7 +78,7 @@ class LALRParserGenerator(private val grammar: Grammar) {
             if (symbolAfterDot is NonTerminal) {
                 val beta = rhs.subList(item.dotPosition + 1, rhs.size)
                 // Lookahead is FIRST of the rest of the rule (β) plus the original lookahead (a)
-                val lookaheads = computeFirstOfSequence(beta + Terminal(item.terminalSymbol))
+                val lookaheads = first(beta + Terminal(item.terminalSymbol))
 
                 for (rule in grammar.getRulesFor(symbolAfterDot)) {
                     for (terminal in lookaheads) {
@@ -92,12 +95,12 @@ class LALRParserGenerator(private val grammar: Grammar) {
         return closureSet
     }
 
-    private fun State.goTo(symbol: Symbol): State {
+    internal fun State.goTo(symbol: Symbol): State {
         val movedItems = filter { it.symbolAfterDot == symbol }.map { it.advance() }
         return movedItems.toSet().closure()
     }
 
-    private fun buildLR1CanonicalCollection(): Pair<List<State>, Map<Pair<Int, Symbol>, Int>> {
+    internal fun buildLR1CanonicalCollection(): Pair<List<State>, Map<Pair<Int, Symbol>, Int>> {
         val initialItem = Item(grammar.augmentedStartRule, dotPosition = 0, terminalSymbol = TokenType.EOF)
         val initialState = setOf(initialItem).closure()
 
@@ -215,8 +218,7 @@ class LALRParserGenerator(private val grammar: Grammar) {
 
         return ParsingTable(
             actionTable.map { it },
-            gotoTable.map { it },
-            grammar
+            gotoTable.map { it }
         )
     }
 }

@@ -6,13 +6,12 @@ import lexer.LexerImpl
 import parser.KodeParser
 
 fun main(args: Array<String>) {
-    try {
-        val path = args.firstOrNull()
-        val source: String = if (path != null) {
-            SystemFileSystem.source(Path(path)).buffered().readString()
-        } else {
-            // Default demo program if no path is provided
-            """
+    val path = args.firstOrNull()
+    val source: String = if (path != null) {
+        SystemFileSystem.source(Path(path)).buffered().readString()
+    } else {
+        // Default demo program if no path is provided
+        """
         fun add{ a: i32, b: i32 }: i32 (
             a + b;
         );
@@ -21,22 +20,17 @@ fun main(args: Array<String>) {
             add{ 2, 3 };
         );
         """.trimIndent()
-        }
-
-        // 1) Lex
-        val lexer = LexerImpl(source)
-        val tokens = lexer.tokenize()
-        println("-- Tokens --")
-        for (t in tokens) println(t)
-
-        // 2) Parse
-        println("\n-- Parse Tree --")
-        runCatching {
-            val parser = KodeParser()
-        }.onFailure { println(it.message) }
-        //val tree = parser.parse(source)
-        //println(tree)
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
+
+    // 1) Lex
+    val lexer = LexerImpl(source)
+    val tokens = lexer.tokenize()
+    println("-- Tokens --")
+    for (t in tokens) println(t)
+
+    // 2) Parse
+    println("\n-- Parse Tree --")
+    val parser = KodeParser()
+    val tree = parser.parse(source)
+    println(tree)
 }

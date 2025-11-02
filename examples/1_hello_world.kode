@@ -1,4 +1,4 @@
-alien fun print_string{ s: char* };  // Declaration only (external function)
+alien fun print_string{ s: char ptr };  // Declaration only (external function)
 
 fun main{}: i32 (
     print_string("Hello, World!");

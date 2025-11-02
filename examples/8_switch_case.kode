@@ -1,8 +1,8 @@
-alien fun print_string{ s: char* };
+alien fun print_string{ s: char ptr };
 
 fun main{}: i32 (
     i32 day = 3;
-    char* day_name = switch { day } (
+    char ptr day_name = switch { day } (
         1 -> "Monday";
         2 -> "Tuesday";
         3 -> "Wednesday";

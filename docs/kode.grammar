@@ -29,9 +29,10 @@ Params -> ParamList .
 ParamList -> ParamList COMMA Param | Param .
 Param -> IDENT COLON Type .
 
-Type -> BaseType PtrStars
-     | IDENT PtrStars
+Type -> BaseType TypeSuffix
+     | IDENT TypeSuffix
      | FuncType .
+TypeSuffix -> TypeSuffix PTR | .
 BaseType -> VOID | I32 | U8 | F64 .
 FuncType -> LBRACE ParamTypeListOpt RBRACE ARROW Type .
 
@@ -82,11 +83,6 @@ Prefixed -> BANG Factor
          | MINUSMINUS Factor
          | STAR Factor
          | AMP Factor .
-
-Prefix -> Postfix
-      | BANG Prefix | TILDE Prefix | PLUS Prefix | MINUS Prefix
-      | PLUSPLUS Prefix | MINUSMINUS Prefix
-      | STAR Prefix | AMP Prefix .
 
 Postfix -> Postfix PLUSPLUS
         | Postfix MINUSMINUS

@@ -1,6 +1,4 @@
-package parser
-
-import lexer.TokenType
+package parser.generator
 
 class GrammarBuilder {
     internal val rules = mutableListOf<GrammarRule>()
@@ -13,6 +11,3 @@ class GrammarBuilder {
 fun grammar(startSymbol: NonTerminal, block: GrammarBuilder.() -> Unit): Grammar {
     return Grammar(GrammarBuilder().apply(block).rules, startSymbol)
 }
-
-val String.nt get() = NonTerminal(name = this)
-val TokenType.t get() = Terminal(t = this)

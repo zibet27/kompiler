@@ -2,9 +2,9 @@ alien fun print_int{ x: i32 };
 alien fun print_double{ d: f64 };
 
 // Generic swap function using void pointers
-fun swap_bytes{ a: void*, b: void*, size: i32 } (
-    char* temp = a ~> char*;
-    char* temp2 = b ~> char*;
+fun swap_bytes{ a: void ptr, b: void ptr, size: i32 } (
+    char ptr temp = a ~> char ptr;
+    char ptr temp2 = b ~> char ptr;
     char tmp;
 
     // Swap byte by byte

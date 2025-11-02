@@ -10,11 +10,11 @@ fun main{}: i32 (
     f64 d2 = i ~> f64;
 
     // Pointer casting
-    void* generic_ptr = &i;
-    i32* int_ptr = generic_ptr ~> i32*;
+    void ptr generic_ptr = &i;
+    i32 ptr int_ptr = generic_ptr ~> i32 ptr;
 
     // Cast between pointer types
-    char* char_ptr = int_ptr ~> char*;
+    char ptr char_ptr = int_ptr ~> char ptr;
 
     print_int{ i2 };  // Should print 3 (truncated)
     print_double{ d2 };  // Should print 42.0

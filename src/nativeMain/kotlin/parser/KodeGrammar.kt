@@ -1,6 +1,10 @@
 package parser
 
 import lexer.TokenType
+import parser.generator.Grammar
+import parser.generator.grammar
+import parser.generator.nt
+import parser.generator.t
 
 object KodeGrammar {
     fun build(): Grammar = grammar(startSymbol = "Program".nt) {
@@ -94,19 +98,23 @@ object KodeGrammar {
         rule(lhs = "ParamList".nt, "Param".nt)
         rule(lhs = "Param".nt, TokenType.IDENT.t, TokenType.COLON.t, "Type".nt)
 
-        // Type ::= (BaseType | IDENT) PtrStars | FuncType
-        rule(lhs = "Type".nt, "BaseType".nt, "PtrStars".nt)
-        rule(lhs = "Type".nt, "TypeName".nt, "PtrStars".nt)
-        // Right-recursive form to minimize LALR lookahead bleed for epsilon
-        rule(lhs = "PtrStars".nt, TokenType.STAR.t, "PtrStars".nt)
-        rule(lhs = "PtrStars".nt)
+        rule(lhs = "Type".nt, "BaseType".nt, "TypeSuffix".nt)
+        rule(lhs = "Type".nt, TokenType.IDENT.t, "TypeSuffix".nt)
         rule(lhs = "Type".nt, "FuncType".nt)
-        rule(lhs = "TypeName".nt, TokenType.IDENT.t)
+        rule(lhs = "TypeSuffix".nt, "TypeSuffix".nt, TokenType.PTR.t)
+        rule(lhs = "TypeSuffix".nt)
         rule(lhs = "BaseType".nt, TokenType.VOID.t)
         rule(lhs = "BaseType".nt, TokenType.I32.t)
         rule(lhs = "BaseType".nt, TokenType.U8.t)
         rule(lhs = "BaseType".nt, TokenType.F64.t)
-        rule(lhs = "FuncType".nt, TokenType.LBRACE.t, "ParamTypeListOpt".nt, TokenType.RBRACE.t, TokenType.ARROW.t, "Type".nt)
+        rule(
+            lhs = "FuncType".nt,
+            TokenType.LBRACE.t,
+            "ParamTypeListOpt".nt,
+            TokenType.RBRACE.t,
+            TokenType.ARROW.t,
+            "Type".nt
+        )
 
         // Block expression items (declarations and expression statements)
         rule(lhs = "ItemListOpt".nt, "ItemList".nt)
@@ -129,11 +137,29 @@ object KodeGrammar {
         rule(lhs = "BlockExpr".nt, TokenType.LPAREN.t, "ItemListOpt".nt, TokenType.RPAREN.t)
 
         // if-expression returns value of the chosen block
-        rule(lhs = "IfExpr".nt, TokenType.IF.t, TokenType.LBRACE.t, "Expr".nt, TokenType.RBRACE.t, "BlockExpr".nt, TokenType.ELSE.t, "BlockExpr".nt)
+        rule(
+            lhs = "IfExpr".nt,
+            TokenType.IF.t,
+            TokenType.LBRACE.t,
+            "Expr".nt,
+            TokenType.RBRACE.t,
+            "BlockExpr".nt,
+            TokenType.ELSE.t,
+            "BlockExpr".nt
+        )
 
         // Loops (as items)
         rule(lhs = "WhileStmt".nt, TokenType.WHILE.t, TokenType.LBRACE.t, "Expr".nt, TokenType.RBRACE.t, "BlockExpr".nt)
-        rule(lhs = "DoWhileStmt".nt, TokenType.DO.t, "BlockExpr".nt, TokenType.WHILE.t, TokenType.LBRACE.t, "Expr".nt, TokenType.RBRACE.t, TokenType.SEMICOLON.t)
+        rule(
+            lhs = "DoWhileStmt".nt,
+            TokenType.DO.t,
+            "BlockExpr".nt,
+            TokenType.WHILE.t,
+            TokenType.LBRACE.t,
+            "Expr".nt,
+            TokenType.RBRACE.t,
+            TokenType.SEMICOLON.t
+        )
         rule(
             lhs = "ForStmt".nt,
             TokenType.FOR.t, TokenType.LBRACE.t,
@@ -237,13 +263,14 @@ object KodeGrammar {
         rule(lhs = "PrimaryNoIdent".nt, "SwitchExpr".nt)
 
         // switch scrutinee is a general expression, cases are integer literals (docs-aligned)
-        rule(lhs = "SwitchExpr".nt,
+        rule(
+            lhs = "SwitchExpr".nt,
             TokenType.SWITCH.t, TokenType.LPAREN.t, "Expr".nt, TokenType.RPAREN.t,
-            TokenType.LBRACE.t, "CaseList".nt, "DefaultCase".nt, TokenType.RBRACE.t)
+            TokenType.LBRACE.t, "CaseList".nt, "DefaultCase".nt, TokenType.RBRACE.t
+        )
         rule(lhs = "CaseList".nt, "CaseList".nt, "Case".nt)
         rule(lhs = "CaseList".nt)
         rule(lhs = "Case".nt, TokenType.INT.t, TokenType.ARROW.t, "Expr".nt, TokenType.SEMICOLON.t)
         rule(lhs = "DefaultCase".nt, TokenType.ELSE.t, TokenType.ARROW.t, "Expr".nt, TokenType.SEMICOLON.t)
-
     }
 }

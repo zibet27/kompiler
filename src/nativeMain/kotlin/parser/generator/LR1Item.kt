@@ -1,4 +1,4 @@
-package parser
+package parser.generator
 
 import lexer.TokenType
 
@@ -23,7 +23,9 @@ data class Item(
 // Represents the "core" of an item (rule + dot position, without a lookahead)
 data class ItemCore(val rule: GrammarRule, val dotPosition: Int)
 
-val Item.core: ItemCore get() = ItemCore(this.rule, this.dotPosition)
+val Item.core: ItemCore get() = ItemCore(rule, dotPosition)
 
 // Represents a state (set of items)
 typealias State = Set<Item>
+
+typealias StateCollection = List<State>

@@ -84,6 +84,7 @@ class LexerImpl(private val source: String) : Lexer {
             "with" -> Token.With(span = makeSpan(start))
             "skip" -> Token.Skip(span = makeSpan(start))
             "stop" -> Token.Stop(span = makeSpan(start))
+            "ptr" -> Token.Ptr(span = makeSpan(start))
             else -> Token.Identifier(span = makeSpan(start), lexeme = text)
         }
     }

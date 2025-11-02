@@ -71,6 +71,7 @@ sealed class Token(val span: Span, val lexeme: String) {
     // Note: no 'cast' keyword; casts use the '~>' operator only.
     class Skip(span: Span) : Token(span, lexeme = "skip")
     class Stop(span: Span) : Token(span, lexeme = "stop")
+    class Ptr(span: Span) : Token(span, lexeme = "ptr")
 
     // Multi-character operators
     class PlusPlus(span: Span) : Token(span, lexeme = "++")
@@ -109,7 +110,7 @@ enum class TokenType {
     IDENT, INT, CHAR_LIT, STRING_LIT,
     FUN, VOID, I32, U8, F64,
     ALIEN, OBJECT, TYPEALIAS,
-    IF, ELSE, FOR, WHILE, DO, SWITCH, WITH, SKIP, STOP,
+    IF, ELSE, FOR, WHILE, DO, SWITCH, WITH, SKIP, STOP, PTR,
     PLUSPLUS, MINUSMINUS, EQEQ, BANGEQ, LT, LTE, GT, GTE, SHL, SHR, ANDAND, OROR, ARROW, TILDE_GT,
     EOF
 }
@@ -158,6 +159,7 @@ val Token.type: TokenType
         is Token.With -> TokenType.WITH
         is Token.Skip -> TokenType.SKIP
         is Token.Stop -> TokenType.STOP
+        is Token.Ptr -> TokenType.PTR
         is Token.PlusPlus -> TokenType.PLUSPLUS
         is Token.MinusMinus -> TokenType.MINUSMINUS
         is Token.EqualEqual -> TokenType.EQEQ
