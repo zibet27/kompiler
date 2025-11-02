@@ -3,24 +3,30 @@ package parser
 import lexer.Token
 import lexer.type
 import parser.generator.Action
-import parser.generator.NonTerminal
+import parser.generator.GrammarRule
 import parser.generator.ParsingTable
 
-// A node in the parse tree (for demonstration)
-sealed class ParseNode {
-    data class Inner(val symbol: NonTerminal, val children: List<ParseNode>) : ParseNode()
-    data class Leaf(val token: Token) : ParseNode()
+interface SemanticActions<V> {
+    fun onShift(token: Token): V
+    fun onReduce(rule: GrammarRule, children: List<V>): V
 }
 
 // LR(1) parser
-class Parser(private val table: ParsingTable) {
+class Parser<V>(
+    private val table: ParsingTable,
+    private val actions: SemanticActions<V>
+) {
 
-    fun parse(tokens: Sequence<Token>): ParseNode {
+    /**
+     * Generic LR parse that constructs a semantic value directly via user-provided actions, without
+     * building an intermediate parse tree. The returned value is whatever [actions] produce for the start symbol.
+     */
+    fun parse(tokens: Sequence<Token>): V {
         val stateStack = ArrayDeque<Int>()
-        val nodeStack = ArrayDeque<ParseNode>()
+        val valueStack = ArrayDeque<V>()
         stateStack.addLast(0)
 
-        val tokenIterator = (tokens).iterator()
+        val tokenIterator = tokens.iterator()
         var currentToken = tokenIterator.next()
 
         while (true) {
@@ -28,23 +34,27 @@ class Parser(private val table: ParsingTable) {
             when (val action = table.actionTable[currentState][currentToken.type]) {
                 is Action.Shift -> {
                     stateStack.addLast(action.state)
-                    nodeStack.addLast(ParseNode.Leaf(currentToken))
+                    valueStack.addLast(actions.onShift(currentToken))
                     currentToken = tokenIterator.next()
                 }
+
                 is Action.Reduce -> {
                     val numToPop = action.rule.rhs.size
-                    val children = (1..numToPop).map { nodeStack.removeLast() }.reversed()
+                    val children = (1..numToPop).map { valueStack.removeLast() }.asReversed()
                     repeat(numToPop) { stateStack.removeLast() }
 
                     val nextStateForGoto = stateStack.last()
                     val nextState = table.gotoTable[nextStateForGoto][action.rule.lhs]
                         ?: error("No GOTO entry from state $nextStateForGoto with ${action.rule.lhs}")
 
+                    val v = actions.onReduce(action.rule, children)
+
                     stateStack.addLast(nextState)
-                    nodeStack.addLast(ParseNode.Inner(action.rule.lhs, children))
+                    valueStack.addLast(v)
                 }
-                is Action.Accept -> return nodeStack.single()
-                null -> error("Syntax Error: Unexpected token $currentToken in state $currentState.")
+
+                is Action.Accept -> return valueStack.single()
+                null -> error("Syntax Error: Unexpected token $currentToken.")
             }
         }
     }

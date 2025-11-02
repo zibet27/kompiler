@@ -15,7 +15,9 @@ data class Position(
 data class Span(
     val start: Position,
     val end: Position,
-)
+) {
+    override fun toString(): String = "${start.line}:${start.column}-${end.line}:${end.column}"
+}
 
 /**
  * A token with its textual representation and source span.
@@ -57,7 +59,6 @@ sealed class Token(val span: Span, val lexeme: String) {
     class I32(span: Span) : Token(span, lexeme = "i32")
     class U8(span: Span) : Token(span, lexeme = "u8")
     class F64(span: Span) : Token(span, lexeme = "f64")
-    // Note: no separate 'char' built-in type; 'char' (if present) lexes as IDENT.
     class Alien(span: Span) : Token(span, lexeme = "alien")
     class Object(span: Span) : Token(span, lexeme = "object")
     class TypeAlias(span: Span) : Token(span, lexeme = "typealias")
@@ -68,7 +69,6 @@ sealed class Token(val span: Span, val lexeme: String) {
     class Do(span: Span) : Token(span, lexeme = "do")
     class Switch(span: Span) : Token(span, lexeme = "switch")
     class With(span: Span) : Token(span, lexeme = "with")
-    // Note: no 'cast' keyword; casts use the '~>' operator only.
     class Skip(span: Span) : Token(span, lexeme = "skip")
     class Stop(span: Span) : Token(span, lexeme = "stop")
     class Ptr(span: Span) : Token(span, lexeme = "ptr")
@@ -92,15 +92,8 @@ sealed class Token(val span: Span, val lexeme: String) {
     // End of the file
     class EOF(span: Span) : Token(span, lexeme = "<EOF>")
 
-    override fun toString(): String = buildString {
-        append("Token")
-        append("('")
-        append(lexeme)
-        append("' @ ")
-        append(span.start.line).append(":").append(span.start.column)
-        append("-")
-        append(span.end.line).append(":").append(span.end.column)
-        append(")")
+    override fun toString(): String {
+        return "'$lexeme' at $span"
     }
 }
 
@@ -111,7 +104,7 @@ enum class TokenType {
     FUN, VOID, I32, U8, F64,
     ALIEN, OBJECT, TYPEALIAS,
     IF, ELSE, FOR, WHILE, DO, SWITCH, WITH, SKIP, STOP, PTR,
-    PLUSPLUS, MINUSMINUS, EQEQ, BANGEQ, LT, LTE, GT, GTE, SHL, SHR, ANDAND, OROR, ARROW, TILDE_GT,
+    PLUSPLUS, MINUS_MINUS, EQ_EQ, BANG_EQ, LT, LTE, GT, GTE, SHL, SHR, AND_AND, OR_OR, ARROW, TILDE_GT,
     EOF
 }
 
@@ -161,17 +154,17 @@ val Token.type: TokenType
         is Token.Stop -> TokenType.STOP
         is Token.Ptr -> TokenType.PTR
         is Token.PlusPlus -> TokenType.PLUSPLUS
-        is Token.MinusMinus -> TokenType.MINUSMINUS
-        is Token.EqualEqual -> TokenType.EQEQ
-        is Token.BangEqual -> TokenType.BANGEQ
+        is Token.MinusMinus -> TokenType.MINUS_MINUS
+        is Token.EqualEqual -> TokenType.EQ_EQ
+        is Token.BangEqual -> TokenType.BANG_EQ
         is Token.Less -> TokenType.LT
         is Token.LessEqual -> TokenType.LTE
         is Token.Greater -> TokenType.GT
         is Token.GreaterEqual -> TokenType.GTE
         is Token.ShiftLeft -> TokenType.SHL
         is Token.ShiftRight -> TokenType.SHR
-        is Token.AmpAmp -> TokenType.ANDAND
-        is Token.PipePipe -> TokenType.OROR
+        is Token.AmpAmp -> TokenType.AND_AND
+        is Token.PipePipe -> TokenType.OR_OR
         is Token.Arrow -> TokenType.ARROW
         is Token.TildeGreater -> TokenType.TILDE_GT
         is Token.EOF -> TokenType.EOF

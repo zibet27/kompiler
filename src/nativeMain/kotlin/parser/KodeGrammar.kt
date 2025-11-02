@@ -7,270 +7,338 @@ import parser.generator.nt
 import parser.generator.t
 
 object KodeGrammar {
-    fun build(): Grammar = grammar(startSymbol = "Program".nt) {
+    object NT {
+        val Program = "Program".nt
+        val TopDeclList = "TopDeclList".nt
+        val TopDecl = "TopDecl".nt
+        val FunDef = "FunDef".nt
+        val FunDecl = "FunDecl".nt
+        val AlienFunDecl = "AlienFunDecl".nt
+        val RetTypeOpt = "RetTypeOpt".nt
+        val ObjectDecl = "ObjectDecl".nt
+        val ObjectDef = "ObjectDef".nt
+        val FieldDeclsOpt = "FieldDeclsOpt".nt
+        val FieldDecls = "FieldDecls".nt
+        val FieldDecl = "FieldDecl".nt
+        val TypeAlias = "TypeAlias".nt
+        val ParamTypeListOpt = "ParamTypeListOpt".nt
+        val ParamTypeList = "ParamTypeList".nt
+        val GlobalVarDecl = "GlobalVarDecl".nt
+        val DeclaratorList = "DeclaratorList".nt
+        val Declarator = "Declarator".nt
+        val ArraySuffixOpt = "ArraySuffixOpt".nt
+        val InitOpt = "InitOpt".nt
+        val ParamsOpt = "ParamsOpt".nt
+        val Params = "Params".nt
+        val ParamList = "ParamList".nt
+        val Param = "Param".nt
+        val Type = "Type".nt
+        val BaseType = "BaseType".nt
+        val TypeSuffix = "TypeSuffix".nt
+        val FuncType = "FuncType".nt
+        val ItemListOpt = "ItemListOpt".nt
+        val ItemList = "ItemList".nt
+        val Item = "Item".nt
+        val LocalVarDecl = "LocalVarDecl".nt
+        val BlockExpr = "BlockExpr".nt
+        val IfExpr = "IfExpr".nt
+        val WhileStmt = "WhileStmt".nt
+        val DoWhileStmt = "DoWhileStmt".nt
+        val ForStmt = "ForStmt".nt
+        val ForInitOpt = "ForInitOpt".nt
+        val ForCondOpt = "ForCondOpt".nt
+        val ForIncrOpt = "ForIncrOpt".nt
+        val Expr = "Expr".nt
+        val Assign = "Assign".nt
+        val LValue = "LValue".nt
+        val OrExpr = "OrExpr".nt
+        val AndExpr = "AndExpr".nt
+        val BitOrExpr = "BitOrExpr".nt
+        val BitXorExpr = "BitXorExpr".nt
+        val BitAndExpr = "BitAndExpr".nt
+        val Equality = "Equality".nt
+        val Rel = "Rel".nt
+        val Shift = "Shift".nt
+        val Add = "Add".nt
+        val Mul = "Mul".nt
+        val Factor = "Factor".nt
+        val Prefixed = "Prefixed".nt
+        val Postfix = "Postfix".nt
+        val Simple = "Simple".nt
+        val CastExpr = "CastExpr".nt
+        val ArgsOpt = "ArgsOpt".nt
+        val ArgList = "ArgList".nt
+        val Primary = "Primary".nt
+        val PrimaryNoIdent = "PrimaryNoIdent".nt
+        val SwitchExpr = "SwitchExpr".nt
+        val CaseList = "CaseList".nt
+        val Case = "Case".nt
+        val DefaultCase = "DefaultCase".nt
+    }
+    fun build(): Grammar = grammar(startSymbol = NT.Program) {
         // Program and top-level declarations
-        rule(lhs = "Program".nt, "TopDeclList".nt)
-        rule(lhs = "TopDeclList".nt, "TopDeclList".nt, "TopDecl".nt)
-        rule(lhs = "TopDeclList".nt, "TopDecl".nt)
+        rule(lhs = NT.Program, NT.TopDeclList)
+        rule(lhs = NT.TopDeclList, NT.TopDeclList, NT.TopDecl)
+        rule(lhs = NT.TopDeclList, NT.TopDecl)
 
-        rule(lhs = "TopDecl".nt, "FunDef".nt)
-        rule(lhs = "TopDecl".nt, "FunDecl".nt)
-        rule(lhs = "TopDecl".nt, "AlienFunDecl".nt)
-        rule(lhs = "TopDecl".nt, "ObjectDecl".nt)
-        rule(lhs = "TopDecl".nt, "ObjectDef".nt)
-        rule(lhs = "TopDecl".nt, "TypeAlias".nt)
-        rule(lhs = "TopDecl".nt, "GlobalVarDecl".nt)
+        rule(lhs = NT.TopDecl, NT.FunDef)
+        rule(lhs = NT.TopDecl, NT.FunDecl)
+        rule(lhs = NT.TopDecl, NT.AlienFunDecl)
+        rule(lhs = NT.TopDecl, NT.ObjectDecl)
+        rule(lhs = NT.TopDecl, NT.ObjectDef)
+        rule(lhs = NT.TopDecl, NT.TypeAlias)
+        rule(lhs = NT.TopDecl, NT.GlobalVarDecl)
 
         // fun name{ params? }: Type ( items? ) ;  — body is a block-expression
         rule(
-            lhs = "FunDef".nt,
+            lhs = NT.FunDef,
             TokenType.FUN.t,
             TokenType.IDENT.t,
-            TokenType.LBRACE.t, "ParamsOpt".nt, TokenType.RBRACE.t,
-            TokenType.COLON.t, "Type".nt,
-            TokenType.LPAREN.t, "ItemListOpt".nt, TokenType.RPAREN.t,
+            TokenType.LBRACE.t, NT.ParamsOpt, TokenType.RBRACE.t,
+            TokenType.COLON.t, NT.Type,
+            TokenType.LPAREN.t, NT.ItemListOpt, TokenType.RPAREN.t,
             TokenType.SEMICOLON.t
         )
 
         // fun name{ params? }: Type ;
         rule(
-            lhs = "FunDecl".nt,
+            lhs = NT.FunDecl,
             TokenType.FUN.t,
             TokenType.IDENT.t,
-            TokenType.LBRACE.t, "ParamsOpt".nt, TokenType.RBRACE.t,
-            TokenType.COLON.t, "Type".nt,
+            TokenType.LBRACE.t, NT.ParamsOpt, TokenType.RBRACE.t,
+            TokenType.COLON.t, NT.Type,
             TokenType.SEMICOLON.t
         )
 
         // alien fun name{ params? } (':' Type)? ;
         rule(
-            lhs = "AlienFunDecl".nt,
+            lhs = NT.AlienFunDecl,
             TokenType.ALIEN.t, TokenType.FUN.t, TokenType.IDENT.t,
-            TokenType.LBRACE.t, "ParamsOpt".nt, TokenType.RBRACE.t,
-            "RetTypeOpt".nt, TokenType.SEMICOLON.t
+            TokenType.LBRACE.t, NT.ParamsOpt, TokenType.RBRACE.t,
+            NT.RetTypeOpt, TokenType.SEMICOLON.t
         )
-        rule(lhs = "RetTypeOpt".nt, TokenType.COLON.t, "Type".nt)
-        rule(lhs = "RetTypeOpt".nt)
+        rule(lhs = NT.RetTypeOpt, TokenType.COLON.t, NT.Type)
+        rule(lhs = NT.RetTypeOpt)
 
         // object IDENT ;
-        rule(lhs = "ObjectDecl".nt, TokenType.OBJECT.t, TokenType.IDENT.t, TokenType.SEMICOLON.t)
+        rule(lhs = NT.ObjectDecl, TokenType.OBJECT.t, TokenType.IDENT.t, TokenType.SEMICOLON.t)
         // object IDENT ( FieldDeclsOpt ) ;
         rule(
-            lhs = "ObjectDef".nt,
+            lhs = NT.ObjectDef,
             TokenType.OBJECT.t, TokenType.IDENT.t,
-            TokenType.LPAREN.t, "FieldDeclsOpt".nt, TokenType.RPAREN.t,
+            TokenType.LPAREN.t, NT.FieldDeclsOpt, TokenType.RPAREN.t,
             TokenType.SEMICOLON.t
         )
-        rule(lhs = "FieldDeclsOpt".nt, "FieldDecls".nt)
-        rule(lhs = "FieldDeclsOpt".nt)
-        rule(lhs = "FieldDecls".nt, "FieldDecls".nt, "FieldDecl".nt)
-        rule(lhs = "FieldDecls".nt, "FieldDecl".nt)
-        rule(lhs = "FieldDecl".nt, TokenType.IDENT.t, TokenType.COLON.t, "Type".nt, TokenType.SEMICOLON.t)
+        rule(lhs = NT.FieldDeclsOpt, NT.FieldDecls)
+        rule(lhs = NT.FieldDeclsOpt)
+        rule(lhs = NT.FieldDecls, NT.FieldDecls, NT.FieldDecl)
+        rule(lhs = NT.FieldDecls, NT.FieldDecl)
+        rule(lhs = NT.FieldDecl, TokenType.IDENT.t, TokenType.COLON.t, NT.Type, TokenType.SEMICOLON.t)
 
         // typealias Name = { ParamTypeListOpt } -> Type ;
         rule(
-            lhs = "TypeAlias".nt,
+            lhs = NT.TypeAlias,
             TokenType.TYPEALIAS.t, TokenType.IDENT.t, TokenType.ASSIGN.t,
-            TokenType.LBRACE.t, "ParamTypeListOpt".nt, TokenType.RBRACE.t,
-            TokenType.ARROW.t, "Type".nt, TokenType.SEMICOLON.t
+            TokenType.LBRACE.t, NT.ParamTypeListOpt, TokenType.RBRACE.t,
+            TokenType.ARROW.t, NT.Type, TokenType.SEMICOLON.t
         )
-        rule(lhs = "ParamTypeListOpt".nt, "ParamTypeList".nt)
-        rule(lhs = "ParamTypeListOpt".nt)
-        rule(lhs = "ParamTypeList".nt, "ParamTypeList".nt, TokenType.COMMA.t, "Type".nt)
-        rule(lhs = "ParamTypeList".nt, "Type".nt)
+        rule(lhs = NT.ParamTypeListOpt, NT.ParamTypeList)
+        rule(lhs = NT.ParamTypeListOpt)
+        rule(lhs = NT.ParamTypeList, NT.ParamTypeList, TokenType.COMMA.t, NT.Type)
+        rule(lhs = NT.ParamTypeList, NT.Type)
 
         // Globals / local declarations
-        rule(lhs = "GlobalVarDecl".nt, "Type".nt, "DeclaratorList".nt, TokenType.SEMICOLON.t)
-        rule(lhs = "DeclaratorList".nt, "DeclaratorList".nt, TokenType.COMMA.t, "Declarator".nt)
-        rule(lhs = "DeclaratorList".nt, "Declarator".nt)
-        rule(lhs = "Declarator".nt, TokenType.IDENT.t, "ArraySuffixOpt".nt, "InitOpt".nt)
-        rule(lhs = "ArraySuffixOpt".nt, "ArraySuffixOpt".nt, TokenType.LBRACKET.t, "Expr".nt, TokenType.RBRACKET.t)
-        rule(lhs = "ArraySuffixOpt".nt)
-        rule(lhs = "InitOpt".nt, TokenType.WITH.t, "Expr".nt)
-        rule(lhs = "InitOpt".nt, TokenType.ASSIGN.t, "Expr".nt)
-        rule(lhs = "InitOpt".nt)
+        rule(lhs = NT.GlobalVarDecl, NT.Type, NT.DeclaratorList, TokenType.SEMICOLON.t)
+        rule(lhs = NT.DeclaratorList, NT.DeclaratorList, TokenType.COMMA.t, NT.Declarator)
+        rule(lhs = NT.DeclaratorList, NT.Declarator)
+        rule(lhs = NT.Declarator, TokenType.IDENT.t, NT.ArraySuffixOpt, NT.InitOpt)
+        rule(lhs = NT.ArraySuffixOpt, NT.ArraySuffixOpt, TokenType.LBRACKET.t, NT.Expr, TokenType.RBRACKET.t)
+        rule(lhs = NT.ArraySuffixOpt)
+        rule(lhs = NT.InitOpt, TokenType.WITH.t, NT.Expr)
+        rule(lhs = NT.InitOpt, TokenType.ASSIGN.t, NT.Expr)
+        rule(lhs = NT.InitOpt)
 
         // Parameters and types
-        rule(lhs = "ParamsOpt".nt, "Params".nt)
-        rule(lhs = "ParamsOpt".nt)
-        rule(lhs = "Params".nt, "ParamList".nt)
-        rule(lhs = "ParamList".nt, "ParamList".nt, TokenType.COMMA.t, "Param".nt)
-        rule(lhs = "ParamList".nt, "Param".nt)
-        rule(lhs = "Param".nt, TokenType.IDENT.t, TokenType.COLON.t, "Type".nt)
+        rule(lhs = NT.ParamsOpt, NT.Params)
+        rule(lhs = NT.ParamsOpt)
+        rule(lhs = NT.Params, NT.ParamList)
+        rule(lhs = NT.ParamList, NT.ParamList, TokenType.COMMA.t, NT.Param)
+        rule(lhs = NT.ParamList, NT.Param)
+        rule(lhs = NT.Param, TokenType.IDENT.t, TokenType.COLON.t, NT.Type)
 
-        rule(lhs = "Type".nt, "BaseType".nt, "TypeSuffix".nt)
-        rule(lhs = "Type".nt, TokenType.IDENT.t, "TypeSuffix".nt)
-        rule(lhs = "Type".nt, "FuncType".nt)
-        rule(lhs = "TypeSuffix".nt, "TypeSuffix".nt, TokenType.PTR.t)
-        rule(lhs = "TypeSuffix".nt)
-        rule(lhs = "BaseType".nt, TokenType.VOID.t)
-        rule(lhs = "BaseType".nt, TokenType.I32.t)
-        rule(lhs = "BaseType".nt, TokenType.U8.t)
-        rule(lhs = "BaseType".nt, TokenType.F64.t)
+        rule(lhs = NT.Type, NT.BaseType, NT.TypeSuffix)
+        rule(lhs = NT.Type, TokenType.IDENT.t, NT.TypeSuffix)
+        rule(lhs = NT.Type, NT.FuncType)
+        rule(lhs = NT.TypeSuffix, NT.TypeSuffix, TokenType.PTR.t)
+        rule(lhs = NT.TypeSuffix)
+        rule(lhs = NT.BaseType, TokenType.VOID.t)
+        rule(lhs = NT.BaseType, TokenType.I32.t)
+        rule(lhs = NT.BaseType, TokenType.U8.t)
+        rule(lhs = NT.BaseType, TokenType.F64.t)
         rule(
-            lhs = "FuncType".nt,
+            lhs = NT.FuncType,
             TokenType.LBRACE.t,
-            "ParamTypeListOpt".nt,
+            NT.ParamTypeListOpt,
             TokenType.RBRACE.t,
             TokenType.ARROW.t,
-            "Type".nt
+            NT.Type
         )
 
         // Block expression items (declarations and expression statements)
-        rule(lhs = "ItemListOpt".nt, "ItemList".nt)
-        rule(lhs = "ItemListOpt".nt)
-        rule(lhs = "ItemList".nt, "ItemList".nt, "Item".nt)
-        rule(lhs = "ItemList".nt, "Item".nt)
-        rule(lhs = "Item".nt, "LocalVarDecl".nt, TokenType.SEMICOLON.t)
-        rule(lhs = "Item".nt, "Expr".nt, TokenType.SEMICOLON.t)
-        rule(lhs = "Item".nt, TokenType.SKIP.t, TokenType.SEMICOLON.t)
-        rule(lhs = "Item".nt, TokenType.STOP.t, TokenType.SEMICOLON.t)
+        rule(lhs = NT.ItemListOpt, NT.ItemList)
+        rule(lhs = NT.ItemListOpt)
+        rule(lhs = NT.ItemList, NT.ItemList, NT.Item)
+        rule(lhs = NT.ItemList, NT.Item)
+        rule(lhs = NT.Item, NT.LocalVarDecl, TokenType.SEMICOLON.t)
+        rule(lhs = NT.Item, NT.Expr, TokenType.SEMICOLON.t)
+        rule(lhs = NT.Item, TokenType.SKIP.t, TokenType.SEMICOLON.t)
+        rule(lhs = NT.Item, TokenType.STOP.t, TokenType.SEMICOLON.t)
 
-        rule(lhs = "LocalVarDecl".nt, "Type".nt, "DeclaratorList".nt)
+        rule(lhs = NT.LocalVarDecl, NT.Type, NT.DeclaratorList)
 
         // While/Do/For are statement-forms that can appear as items within blocks
-        rule(lhs = "Item".nt, "WhileStmt".nt)
-        rule(lhs = "Item".nt, "DoWhileStmt".nt)
-        rule(lhs = "Item".nt, "ForStmt".nt)
+        rule(lhs = NT.Item, NT.WhileStmt)
+        rule(lhs = NT.Item, NT.DoWhileStmt)
+        rule(lhs = NT.Item, NT.ForStmt)
 
         // Block expression now yields a value: ( items )
-        rule(lhs = "BlockExpr".nt, TokenType.LPAREN.t, "ItemListOpt".nt, TokenType.RPAREN.t)
+        rule(lhs = NT.BlockExpr, TokenType.LPAREN.t, NT.ItemListOpt, TokenType.RPAREN.t)
 
         // if-expression returns value of the chosen block
         rule(
-            lhs = "IfExpr".nt,
+            lhs = NT.IfExpr,
             TokenType.IF.t,
             TokenType.LBRACE.t,
-            "Expr".nt,
+            NT.Expr,
             TokenType.RBRACE.t,
-            "BlockExpr".nt,
+            NT.BlockExpr,
             TokenType.ELSE.t,
-            "BlockExpr".nt
+            NT.BlockExpr
         )
 
         // Loops (as items)
-        rule(lhs = "WhileStmt".nt, TokenType.WHILE.t, TokenType.LBRACE.t, "Expr".nt, TokenType.RBRACE.t, "BlockExpr".nt)
+        rule(lhs = NT.WhileStmt, TokenType.WHILE.t, TokenType.LBRACE.t, NT.Expr, TokenType.RBRACE.t, NT.BlockExpr)
         rule(
-            lhs = "DoWhileStmt".nt,
+            lhs = NT.DoWhileStmt,
             TokenType.DO.t,
-            "BlockExpr".nt,
+            NT.BlockExpr,
             TokenType.WHILE.t,
             TokenType.LBRACE.t,
-            "Expr".nt,
+            NT.Expr,
             TokenType.RBRACE.t,
             TokenType.SEMICOLON.t
         )
         rule(
-            lhs = "ForStmt".nt,
+            lhs = NT.ForStmt,
             TokenType.FOR.t, TokenType.LBRACE.t,
-            "ForInitOpt".nt, TokenType.SEMICOLON.t,
-            "ForCondOpt".nt, TokenType.SEMICOLON.t,
-            "ForIncrOpt".nt, TokenType.RBRACE.t,
-            "BlockExpr".nt, TokenType.SEMICOLON.t
+            NT.ForInitOpt, TokenType.SEMICOLON.t,
+            NT.ForCondOpt, TokenType.SEMICOLON.t,
+            NT.ForIncrOpt, TokenType.RBRACE.t,
+            NT.BlockExpr, TokenType.SEMICOLON.t
         )
-        rule(lhs = "ForInitOpt".nt, "LocalVarDecl".nt)
-        rule(lhs = "ForInitOpt".nt, "Expr".nt)
-        rule(lhs = "ForInitOpt".nt)
-        rule(lhs = "ForCondOpt".nt, "Expr".nt)
-        rule(lhs = "ForCondOpt".nt)
-        rule(lhs = "ForIncrOpt".nt, "Expr".nt)
-        rule(lhs = "ForIncrOpt".nt)
+        rule(lhs = NT.ForInitOpt, NT.LocalVarDecl)
+        rule(lhs = NT.ForInitOpt, NT.Expr)
+        rule(lhs = NT.ForInitOpt)
+        rule(lhs = NT.ForCondOpt, NT.Expr)
+        rule(lhs = NT.ForCondOpt)
+        rule(lhs = NT.ForIncrOpt, NT.Expr)
+        rule(lhs = NT.ForIncrOpt)
 
         // Expressions (precedence climbing via grammar levels)
-        rule(lhs = "Expr".nt, "Assign".nt)
-        rule(lhs = "Assign".nt, "LValue".nt, TokenType.ASSIGN.t, "Assign".nt)
-        rule(lhs = "Assign".nt, "OrExpr".nt)
-        rule(lhs = "LValue".nt, "Postfix".nt)
+        rule(lhs = NT.Expr, NT.Assign)
+        rule(lhs = NT.Assign, NT.LValue, TokenType.ASSIGN.t, NT.Assign)
+        rule(lhs = NT.Assign, NT.OrExpr)
+        rule(lhs = NT.LValue, NT.Postfix)
 
-        rule(lhs = "OrExpr".nt, "OrExpr".nt, TokenType.OROR.t, "AndExpr".nt)
-        rule(lhs = "OrExpr".nt, "AndExpr".nt)
-        rule(lhs = "AndExpr".nt, "AndExpr".nt, TokenType.ANDAND.t, "BitOrExpr".nt)
-        rule(lhs = "AndExpr".nt, "BitOrExpr".nt)
-        rule(lhs = "BitOrExpr".nt, "BitOrExpr".nt, TokenType.PIPE.t, "BitXorExpr".nt)
-        rule(lhs = "BitOrExpr".nt, "BitXorExpr".nt)
-        rule(lhs = "BitXorExpr".nt, "BitXorExpr".nt, TokenType.CARET.t, "BitAndExpr".nt)
-        rule(lhs = "BitXorExpr".nt, "BitAndExpr".nt)
-        rule(lhs = "BitAndExpr".nt, "BitAndExpr".nt, TokenType.AMP.t, "Equality".nt)
-        rule(lhs = "BitAndExpr".nt, "Equality".nt)
-        rule(lhs = "Equality".nt, "Equality".nt, TokenType.EQEQ.t, "Rel".nt)
-        rule(lhs = "Equality".nt, "Equality".nt, TokenType.BANGEQ.t, "Rel".nt)
-        rule(lhs = "Equality".nt, "Rel".nt)
-        rule(lhs = "Rel".nt, "Rel".nt, TokenType.LT.t, "Shift".nt)
-        rule(lhs = "Rel".nt, "Rel".nt, TokenType.GT.t, "Shift".nt)
-        rule(lhs = "Rel".nt, "Rel".nt, TokenType.LTE.t, "Shift".nt)
-        rule(lhs = "Rel".nt, "Rel".nt, TokenType.GTE.t, "Shift".nt)
-        rule(lhs = "Rel".nt, "Shift".nt)
-        rule(lhs = "Shift".nt, "Shift".nt, TokenType.SHL.t, "Add".nt)
-        rule(lhs = "Shift".nt, "Shift".nt, TokenType.SHR.t, "Add".nt)
-        rule(lhs = "Shift".nt, "Add".nt)
-        rule(lhs = "Add".nt, "Add".nt, TokenType.PLUS.t, "Mul".nt)
-        rule(lhs = "Add".nt, "Add".nt, TokenType.MINUS.t, "Mul".nt)
-        rule(lhs = "Add".nt, "Mul".nt)
-        rule(lhs = "Mul".nt, "Mul".nt, TokenType.STAR.t, "Factor".nt)
-        rule(lhs = "Mul".nt, "Mul".nt, TokenType.SLASH.t, "Factor".nt)
-        rule(lhs = "Mul".nt, "Mul".nt, TokenType.PERCENT.t, "Factor".nt)
-        rule(lhs = "Mul".nt, "Factor".nt)
+        rule(lhs = NT.OrExpr, NT.OrExpr, TokenType.OR_OR.t, NT.AndExpr)
+        rule(lhs = NT.OrExpr, NT.AndExpr)
+        rule(lhs = NT.AndExpr, NT.AndExpr, TokenType.AND_AND.t, NT.BitOrExpr)
+        rule(lhs = NT.AndExpr, NT.BitOrExpr)
+        rule(lhs = NT.BitOrExpr, NT.BitOrExpr, TokenType.PIPE.t, NT.BitXorExpr)
+        rule(lhs = NT.BitOrExpr, NT.BitXorExpr)
+        rule(lhs = NT.BitXorExpr, NT.BitXorExpr, TokenType.CARET.t, NT.BitAndExpr)
+        rule(lhs = NT.BitXorExpr, NT.BitAndExpr)
+        rule(lhs = NT.BitAndExpr, NT.BitAndExpr, TokenType.AMP.t, NT.Equality)
+        rule(lhs = NT.BitAndExpr, NT.Equality)
+        rule(lhs = NT.Equality, NT.Equality, TokenType.EQ_EQ.t, NT.Rel)
+        rule(lhs = NT.Equality, NT.Equality, TokenType.BANG_EQ.t, NT.Rel)
+        rule(lhs = NT.Equality, NT.Rel)
+        rule(lhs = NT.Rel, NT.Rel, TokenType.LT.t, NT.Shift)
+        rule(lhs = NT.Rel, NT.Rel, TokenType.GT.t, NT.Shift)
+        rule(lhs = NT.Rel, NT.Rel, TokenType.LTE.t, NT.Shift)
+        rule(lhs = NT.Rel, NT.Rel, TokenType.GTE.t, NT.Shift)
+        rule(lhs = NT.Rel, NT.Shift)
+        rule(lhs = NT.Shift, NT.Shift, TokenType.SHL.t, NT.Add)
+        rule(lhs = NT.Shift, NT.Shift, TokenType.SHR.t, NT.Add)
+        rule(lhs = NT.Shift, NT.Add)
+        rule(lhs = NT.Add, NT.Add, TokenType.PLUS.t, NT.Mul)
+        rule(lhs = NT.Add, NT.Add, TokenType.MINUS.t, NT.Mul)
+        rule(lhs = NT.Add, NT.Mul)
+        rule(lhs = NT.Mul, NT.Mul, TokenType.STAR.t, NT.Factor)
+        rule(lhs = NT.Mul, NT.Mul, TokenType.SLASH.t, NT.Factor)
+        rule(lhs = NT.Mul, NT.Mul, TokenType.PERCENT.t, NT.Factor)
+        rule(lhs = NT.Mul, NT.Factor)
 
         // Factor splits pre-fixed forms from postfix/base forms (no Prefix→Postfix reduce)
-        rule(lhs = "Factor".nt, "Postfix".nt)
-        rule(lhs = "Factor".nt, "Prefixed".nt)
+        rule(lhs = NT.Factor, NT.Postfix)
+        rule(lhs = NT.Factor, NT.Prefixed)
 
-        rule(lhs = "Prefixed".nt, TokenType.BANG.t, "Factor".nt)
-        rule(lhs = "Prefixed".nt, TokenType.TILDE.t, "Factor".nt)
-        rule(lhs = "Prefixed".nt, TokenType.PLUS.t, "Factor".nt)
-        rule(lhs = "Prefixed".nt, TokenType.MINUS.t, "Factor".nt)
-        rule(lhs = "Prefixed".nt, TokenType.PLUSPLUS.t, "Factor".nt)
-        rule(lhs = "Prefixed".nt, TokenType.MINUSMINUS.t, "Factor".nt)
-        rule(lhs = "Prefixed".nt, TokenType.STAR.t, "Factor".nt) // deref
-        rule(lhs = "Prefixed".nt, TokenType.AMP.t, "Factor".nt)  // address-of
+        rule(lhs = NT.Prefixed, TokenType.BANG.t, NT.Factor)
+        rule(lhs = NT.Prefixed, TokenType.TILDE.t, NT.Factor)
+        rule(lhs = NT.Prefixed, TokenType.PLUS.t, NT.Factor)
+        rule(lhs = NT.Prefixed, TokenType.MINUS.t, NT.Factor)
+        rule(lhs = NT.Prefixed, TokenType.PLUSPLUS.t, NT.Factor)
+        rule(lhs = NT.Prefixed, TokenType.MINUS_MINUS.t, NT.Factor)
+        rule(lhs = NT.Prefixed, TokenType.STAR.t, NT.Factor) // deref
+        rule(lhs = NT.Prefixed, TokenType.AMP.t, NT.Factor)  // address-of
 
         // Left-recursive postfix without epsilon tails; includes binary cast IDENT ~> Type
-        rule(lhs = "Postfix".nt, "Postfix".nt, TokenType.PLUSPLUS.t)
-        rule(lhs = "Postfix".nt, "Postfix".nt, TokenType.MINUSMINUS.t)
-        rule(lhs = "Postfix".nt, "Postfix".nt, TokenType.LBRACKET.t, "Expr".nt, TokenType.RBRACKET.t)
-        rule(lhs = "Postfix".nt, "Postfix".nt, TokenType.DOT.t, TokenType.IDENT.t)
-        rule(lhs = "Postfix".nt, "Postfix".nt, TokenType.ARROW.t, TokenType.IDENT.t)
-        rule(lhs = "Postfix".nt, "Postfix".nt, TokenType.LBRACE.t, "ArgsOpt".nt, TokenType.RBRACE.t)
-        rule(lhs = "Postfix".nt, "Simple".nt)
+        rule(lhs = NT.Postfix, NT.Postfix, TokenType.PLUSPLUS.t)
+        rule(lhs = NT.Postfix, NT.Postfix, TokenType.MINUS_MINUS.t)
+        rule(lhs = NT.Postfix, NT.Postfix, TokenType.LBRACKET.t, NT.Expr, TokenType.RBRACKET.t)
+        rule(lhs = NT.Postfix, NT.Postfix, TokenType.DOT.t, TokenType.IDENT.t)
+        rule(lhs = NT.Postfix, NT.Postfix, TokenType.ARROW.t, TokenType.IDENT.t)
+        rule(lhs = NT.Postfix, NT.Postfix, TokenType.LBRACE.t, NT.ArgsOpt, TokenType.RBRACE.t)
+        rule(lhs = NT.Postfix, NT.Simple)
 
-        rule(lhs = "Simple".nt, "CastExpr".nt)
-        rule(lhs = "Simple".nt, TokenType.IDENT.t)
-        rule(lhs = "Simple".nt, "PrimaryNoIdent".nt)
+        rule(lhs = NT.Simple, NT.CastExpr)
+        rule(lhs = NT.Simple, TokenType.IDENT.t)
+        rule(lhs = NT.Simple, NT.PrimaryNoIdent)
 
-        rule(lhs = "CastExpr".nt, TokenType.IDENT.t, TokenType.TILDE_GT.t, "Type".nt) // IDENT ~> Type
-        rule(lhs = "ArgsOpt".nt, "ArgList".nt)
-        rule(lhs = "ArgsOpt".nt)
-        rule(lhs = "ArgList".nt, "ArgList".nt, TokenType.COMMA.t, "Expr".nt)
-        rule(lhs = "ArgList".nt, "Expr".nt)
+        rule(lhs = NT.CastExpr, TokenType.IDENT.t, TokenType.TILDE_GT.t, NT.Type) // IDENT ~> Type
+        rule(lhs = NT.ArgsOpt, NT.ArgList)
+        rule(lhs = NT.ArgsOpt)
+        rule(lhs = NT.ArgList, NT.ArgList, TokenType.COMMA.t, NT.Expr)
+        rule(lhs = NT.ArgList, NT.Expr)
 
         // Primaries including expression blocks and if-expression (IDENT handled by Postfix)
-        rule(lhs = "Primary".nt, "BlockExpr".nt)
-        rule(lhs = "Primary".nt, "IfExpr".nt)
-        rule(lhs = "Primary".nt, TokenType.LPAREN.t, "Expr".nt, TokenType.RPAREN.t)
-        rule(lhs = "Primary".nt, TokenType.IDENT.t)
-        rule(lhs = "Primary".nt, TokenType.INT.t)
-        rule(lhs = "Primary".nt, TokenType.CHAR_LIT.t)
-        rule(lhs = "Primary".nt, TokenType.STRING_LIT.t)
-        rule(lhs = "Primary".nt, "SwitchExpr".nt)
+        rule(lhs = NT.Primary, NT.BlockExpr)
+        rule(lhs = NT.Primary, NT.IfExpr)
+        rule(lhs = NT.Primary, TokenType.LPAREN.t, NT.Expr, TokenType.RPAREN.t)
+        rule(lhs = NT.Primary, TokenType.IDENT.t)
+        rule(lhs = NT.Primary, TokenType.INT.t)
+        rule(lhs = NT.Primary, TokenType.CHAR_LIT.t)
+        rule(lhs = NT.Primary, TokenType.STRING_LIT.t)
+        rule(lhs = NT.Primary, NT.SwitchExpr)
 
         // Primary without IDENT (used to separate cast forms)
-        rule(lhs = "PrimaryNoIdent".nt, "BlockExpr".nt)
-        rule(lhs = "PrimaryNoIdent".nt, "IfExpr".nt)
-        rule(lhs = "PrimaryNoIdent".nt, TokenType.LPAREN.t, "Expr".nt, TokenType.RPAREN.t)
-        rule(lhs = "PrimaryNoIdent".nt, TokenType.INT.t)
-        rule(lhs = "PrimaryNoIdent".nt, TokenType.CHAR_LIT.t)
-        rule(lhs = "PrimaryNoIdent".nt, TokenType.STRING_LIT.t)
-        rule(lhs = "PrimaryNoIdent".nt, "SwitchExpr".nt)
+        rule(lhs = NT.PrimaryNoIdent, NT.BlockExpr)
+        rule(lhs = NT.PrimaryNoIdent, NT.IfExpr)
+        rule(lhs = NT.PrimaryNoIdent, TokenType.LPAREN.t, NT.Expr, TokenType.RPAREN.t)
+        rule(lhs = NT.PrimaryNoIdent, TokenType.INT.t)
+        rule(lhs = NT.PrimaryNoIdent, TokenType.CHAR_LIT.t)
+        rule(lhs = NT.PrimaryNoIdent, TokenType.STRING_LIT.t)
+        rule(lhs = NT.PrimaryNoIdent, NT.SwitchExpr)
 
         // switch scrutinee is a general expression, cases are integer literals (docs-aligned)
         rule(
-            lhs = "SwitchExpr".nt,
-            TokenType.SWITCH.t, TokenType.LPAREN.t, "Expr".nt, TokenType.RPAREN.t,
-            TokenType.LBRACE.t, "CaseList".nt, "DefaultCase".nt, TokenType.RBRACE.t
+            lhs = NT.SwitchExpr,
+            TokenType.SWITCH.t, TokenType.LPAREN.t, NT.Expr, TokenType.RPAREN.t,
+            TokenType.LBRACE.t, NT.CaseList, NT.DefaultCase, TokenType.RBRACE.t
         )
-        rule(lhs = "CaseList".nt, "CaseList".nt, "Case".nt)
-        rule(lhs = "CaseList".nt)
-        rule(lhs = "Case".nt, TokenType.INT.t, TokenType.ARROW.t, "Expr".nt, TokenType.SEMICOLON.t)
-        rule(lhs = "DefaultCase".nt, TokenType.ELSE.t, TokenType.ARROW.t, "Expr".nt, TokenType.SEMICOLON.t)
+        rule(lhs = NT.CaseList, NT.CaseList, NT.Case)
+        rule(lhs = NT.CaseList)
+        rule(lhs = NT.Case, TokenType.INT.t, TokenType.ARROW.t, NT.Expr, TokenType.SEMICOLON.t)
+        rule(lhs = NT.DefaultCase, TokenType.ELSE.t, TokenType.ARROW.t, NT.Expr, TokenType.SEMICOLON.t)
     }
 }

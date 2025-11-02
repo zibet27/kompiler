@@ -5,27 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/ParsingTableCache.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/kode.grammar" beforeDir="false" afterPath="$PROJECT_DIR$/docs/kode.grammar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/10_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/10_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/12_casting.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/12_casting.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/13_void_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/13_void_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/1_hello_world.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/1_hello_world.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/2_variables.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/2_variables.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/8_switch_case.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/8_switch_case.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cache/kode-parsing-table.json" beforeDir="false" afterPath="$PROJECT_DIR$/cache/kode-parsing-table.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cache/kode-parsing-table.lock" beforeDir="false" afterPath="$PROJECT_DIR$/cache/kode-parsing-table.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Lexer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Token.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Grammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/Grammar.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/GrammarDsl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/GrammarDsl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/GrammarRule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/LR1Item.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/LALRParserGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/LALRParserGenerator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/LRParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -185,7 +173,7 @@
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.kompiler [runReleaseExecutableNative]">
+  <component name="RunManager" selected="Gradle.runDebugExecutableNative">
     <configuration default="true" type="AppleRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" IS_LOCATION_SIMULATION_SUPPORTED="false" IS_LOCATION_SIMULATION_ALLOWED="true" APPLICATION_LANGUAGE="IDELaunchSchemeLanguageUseSystemLanguage" APPLICATION_REGION="" DEVELOPMENT_TEAM="${TEAM_ID}" MAKE_ACTIVE="TRUE" SHOULD_DEBUG_EXTENSIONS="false">
       <embedded_app_extension_list />
       <method v="2">
@@ -329,6 +317,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.runDebugExecutableNative" />
         <item itemvalue="Gradle.kompiler [runReleaseExecutableNative]" />
       </list>
     </recent_temporary>
@@ -353,7 +342,7 @@
       <workItem from="1761852843054" duration="26695000" />
       <workItem from="1762038815090" duration="15205000" />
       <workItem from="1762085738103" duration="6675000" />
-      <workItem from="1762092445508" duration="3494000" />
+      <workItem from="1762092445508" duration="11385000" />
     </task>
     <servers />
   </component>

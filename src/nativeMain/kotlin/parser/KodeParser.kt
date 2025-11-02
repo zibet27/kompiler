@@ -2,6 +2,9 @@ package parser
 
 import lexer.LexerFactory
 import lexer.LexerImpl
+import parser.ast.AstActions
+import parser.ast.AstValue
+import parser.ast.Program
 import parser.generator.LALRParserGenerator
 import parser.generator.ParsingTable
 import parser.generator.ParsingTableCache
@@ -9,14 +12,15 @@ import parser.generator.ParsingTableCache
 class KodeParser(
     private val lexerFactory: LexerFactory = LexerImpl.Companion
 ) {
-    private val parser = Parser(parsingTable)
+    private val treeParser = Parser(parsingTable, AstActions)
 
     /**
-     * Tokenize [source] with lexer created by [lexerFactory] and run the LALR(1) parser, returning a parse tree.
+     * Tokenize [source] with lexer created by [lexerFactory] and run the LALR(1) parser, returning an AST.
      */
-    fun parse(source: String): ParseNode {
+    fun parse(source: String): Program {
         val lexer = lexerFactory.forSource(source)
-        return parser.parse(tokens = lexer.tokenize())
+        val result = treeParser.parse(tokens = lexer.tokenize())
+        return (result as AstValue.Pgm).program
     }
 
     companion object {

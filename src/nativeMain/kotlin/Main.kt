@@ -2,7 +2,6 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readString
-import lexer.LexerImpl
 import parser.KodeParser
 
 fun main(args: Array<String>) {
@@ -21,15 +20,6 @@ fun main(args: Array<String>) {
         );
         """.trimIndent()
     }
-
-    // 1) Lex
-    val lexer = LexerImpl(source)
-    val tokens = lexer.tokenize()
-    println("-- Tokens --")
-    for (t in tokens) println(t)
-
-    // 2) Parse
-    println("\n-- Parse Tree --")
     val parser = KodeParser()
     val tree = parser.parse(source)
     println(tree)
