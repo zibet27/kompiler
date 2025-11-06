@@ -12,10 +12,10 @@ fun main{}: i32 (
     i32 arr[5] with 0;
 
     // Nested expressions with function calls
-    i32 result = add{ a * 2, b / 2 } + (c % 7);
+    i32 result = add{ a * 2, b / 2 } + { c % 7 };
     print_int{ result };  // EXPECTED: 16
 
-    u8 ch = ('c');
+    u8 ch = { 'c' };
     print_char{ ch };  // Should print 'c'
 
     // Complex array indexing
@@ -27,7 +27,7 @@ fun main{}: i32 (
     print_int{ result };  // EXPECTED: 73
 
     // Compound arithmetic
-    i32 val = ((a + b) * c) / (a - 1) + add{ a, b };
+    i32 val = {{a + b} * c} / {a - 1} + add{ a, b };
     print_int{ val };  // EXPECTED: 71
 
     0;

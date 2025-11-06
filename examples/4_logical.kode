@@ -5,16 +5,16 @@ fun main{}: i32 (
     i32 b = 3;
 
     // Logical operators
-    i32 logical_and = (a > 0) && (b > 0);
-    i32 logical_or = (a > 10) || (b > 0);
-    i32 logical_not = !(a == b);
+    i32 logical_and = { a > 0 } && { b > 0 };
+    i32 logical_or = { a > 10 } || { b > 0 };
+    i32 logical_not = !{ a == b };
 
     // Comparison operators
-    i32 equal = (a == b);
-    i32 not_equal = (a != b);
-    i32 greater = (a > b);
-    i32 less_equal = (a <= b);
-    i32 greater_equal = (a >= b);
+    i32 equal = { a == b };
+    i32 not_equal = { a != b };
+    i32 greater = { a > b };
+    i32 less_equal = { a <= b };
+    i32 greater_equal = { a >= b };
 
     // Bitwise operators
     i32 bitwise_and = a & b;

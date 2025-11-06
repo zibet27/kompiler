@@ -39,9 +39,9 @@ class ParserGeneratorTest {
     fun kodeGrammar_hasExpectedStateCount() {
         val table = KodeParser.parsingTable
 
-        // We expect around 271 LALR states
+        // We expect around 273 LALR states
         val stateCount = table.actionTable.size
-        assertEquals(stateCount, 271,"State count should be around 271, got $stateCount")
+        assertEquals(273, stateCount,"State count should be around 273, got $stateCount")
     }
 
     @Test

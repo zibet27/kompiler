@@ -7,7 +7,11 @@ data class Position(
     val index: Int,
     val line: Int,
     val column: Int,
-)
+) {
+    companion object {
+        val Zero = Position(index = 0, line = 0, column = 0)
+    }
+}
 
 /**
  * A continuous span in the source.
@@ -50,7 +54,9 @@ sealed class Token(val span: Span, val lexeme: String) {
 
     // Identifiers and literals
     class Identifier(span: Span, lexeme: String) : Token(span, lexeme)
+    class TypeName(span: Span, lexeme: String) : Token(span, lexeme)
     class IntLiteral(span: Span, lexeme: String) : Token(span, lexeme)
+    class FloatLiteral(span: Span, lexeme: String) : Token(span, lexeme)
     class CharLiteral(span: Span, lexeme: String) : Token(span, lexeme)
     class StringLiteral(span: Span, lexeme: String) : Token(span, lexeme)
 
@@ -100,7 +106,7 @@ sealed class Token(val span: Span, val lexeme: String) {
 enum class TokenType {
     LBRACE, RBRACE, LPAREN, RPAREN, LBRACKET, RBRACKET, COLON, COMMA, SEMICOLON,
     PLUS, MINUS, STAR, SLASH, PERCENT, ASSIGN, BANG, TILDE, AMP, PIPE, CARET, DOT,
-    IDENT, INT, CHAR_LIT, STRING_LIT,
+    IDENT, TYPENAME, INT, FLOAT, CHAR_LIT, STRING_LIT,
     FUN, VOID, I32, U8, F64,
     ALIEN, OBJECT, TYPEALIAS,
     IF, ELSE, FOR, WHILE, DO, SWITCH, WITH, SKIP, STOP, PTR,
@@ -132,7 +138,9 @@ val Token.type: TokenType
         is Token.Caret -> TokenType.CARET
         is Token.Dot -> TokenType.DOT
         is Token.Identifier -> TokenType.IDENT
+        is Token.TypeName -> TokenType.TYPENAME
         is Token.IntLiteral -> TokenType.INT
+        is Token.FloatLiteral -> TokenType.FLOAT
         is Token.CharLiteral -> TokenType.CHAR_LIT
         is Token.StringLiteral -> TokenType.STRING_LIT
         is Token.Fun -> TokenType.FUN
@@ -173,3 +181,5 @@ val Token.type: TokenType
 /** Lexer error with a precise position. */
 class LexError(message: String, position: Position) :
     RuntimeException("$message at ${position.line}:${position.column}")
+
+fun Token.unexpected(): Nothing = error("Unexpected token $this")

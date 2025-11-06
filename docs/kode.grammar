@@ -1,120 +1,226 @@
 Program -> TopDeclList .
-TopDeclList -> TopDeclList TopDecl | TopDecl .
 
-TopDecl -> FunDef | FunDecl | AlienFunDecl | ObjectDecl | ObjectDef | TypeAlias | GlobalVarDecl .
+TopDeclList -> TopDeclList TopDecl
+             |
+             .
 
-FunDef -> FUN IDENT LBRACE ParamsOpt RBRACE COLON Type LPAREN ItemListOpt RPAREN SEMICOLON .
-FunDecl -> FUN IDENT LBRACE ParamsOpt RBRACE COLON Type SEMICOLON .
+TopDecl -> FunHeader FunBody
+         | AlienFunDecl
+         | ObjectHeader ObjectBody
+         | TypeAlias
+         | GlobalVarDecl
+         .
+
+FunHeader -> FUN IDENT LBRACE ParamsOpt RBRACE RetTypeOpt .
+FunBody   -> SEMICOLON
+           | LPAREN ItemListOpt RPAREN SEMICOLON
+           .
+
 AlienFunDecl -> ALIEN FUN IDENT LBRACE ParamsOpt RBRACE RetTypeOpt SEMICOLON .
-RetTypeOpt -> COLON Type | .
 
-ObjectDecl -> OBJECT IDENT SEMICOLON .
-ObjectDef -> OBJECT IDENT LPAREN FieldDeclsOpt RPAREN SEMICOLON .
-FieldDeclsOpt -> FieldDecls | .
-FieldDecls -> FieldDecls FieldDecl | FieldDecl .
-FieldDecl -> IDENT COLON Type SEMICOLON .
+ObjectHeader -> OBJECT IDENT .
+ObjectBody   -> SEMICOLON
+              | LPAREN FieldDeclsOpt RPAREN SEMICOLON
+              .
 
-TypeAlias -> TYPEALIAS IDENT ASSIGN LBRACE ParamTypeListOpt RBRACE ARROW Type SEMICOLON .
-ParamTypeListOpt -> ParamTypeList | .
-ParamTypeList -> ParamTypeList COMMA Type | Type .
+TypeAlias -> TYPEALIAS IDENT ASSIGN Type SEMICOLON .
 
 GlobalVarDecl -> Type DeclaratorList SEMICOLON .
-DeclaratorList -> DeclaratorList COMMA Declarator | Declarator .
-Declarator -> IDENT ArraySuffixOpt InitOpt .
-ArraySuffixOpt -> ArraySuffixOpt LBRACKET Expr RBRACKET | .
-InitOpt -> WITH Expr | ASSIGN Expr | .
 
-ParamsOpt -> Params | .
-Params -> ParamList .
-ParamList -> ParamList COMMA Param | Param .
+ParamsOpt -> Params
+           |
+           .
+Params    -> ParamList .
+ParamList -> ParamList COMMA Param
+           | Param
+           .
 Param -> IDENT COLON Type .
 
-Type -> BaseType TypeSuffix
-     | IDENT TypeSuffix
-     | FuncType .
-TypeSuffix -> TypeSuffix PTR | .
-BaseType -> VOID | I32 | U8 | F64 .
-FuncType -> LBRACE ParamTypeListOpt RBRACE ARROW Type .
+RetTypeOpt -> COLON Type
+            |
+            .
 
-ItemListOpt -> ItemList | .
-ItemList -> ItemList Item | Item .
+FieldDeclsOpt -> FieldDecls
+               |
+               .
+FieldDecls    -> FieldDecls FieldDecl
+               | FieldDecl
+               .
+FieldDecl -> IDENT COLON Type SEMICOLON .
+
+DeclaratorList -> DeclaratorList COMMA Declarator
+                | Declarator
+                .
+
+Declarator -> IDENT ArrayDimensionsOpt InitOpt .
+ArrayDimensionsOpt -> ArrayDimensions
+                    |
+                    .
+ArrayDimensions    -> ArrayDimensions LBRACKET Expr RBRACKET
+                    | LBRACKET Expr RBRACKET
+                    .
+
+InitOpt -> WITH Expr
+         | ASSIGN Expr
+         |
+         .
+
+Type -> NonFuncType
+      | LBRACE ParamTypeListOpt RBRACE ARROW Type
+      .
+
+NonFuncType -> PrimaryType
+             | NonFuncType PTR
+             .
+
+PrimaryType -> BaseType
+             | TYPENAME
+             | LPAREN Type RPAREN
+             .
+
+BaseType -> VOID | I32 | U8 | F64 .
+
+ParamTypeListOpt -> ParamTypeList
+                  |
+                  .
+ParamTypeList -> ParamTypeList COMMA Type
+               | Type
+               .
+
+ItemListOpt -> ItemList
+             |
+             .
+ItemList -> ItemList Item
+          | Item
+          .
+
 Item -> LocalVarDecl SEMICOLON
-     | Expr SEMICOLON
-     | SKIP SEMICOLON
-     | STOP SEMICOLON
-     | WhileStmt
-     | DoWhileStmt
-     | ForStmt .
+      | Expr SEMICOLON
+      | SKIP SEMICOLON
+      | STOP SEMICOLON
+      .
 
 LocalVarDecl -> Type DeclaratorList .
+
+Expr -> AssignExpr .
+
+AssignExpr -> UnaryExpr AssignOp AssignExpr
+            | LogicalOrExpr
+            .
+AssignOp -> ASSIGN .
+
+LogicalOrExpr -> LogicalOrExpr OR_OR LogicalAndExpr
+               | LogicalAndExpr
+               .
+
+LogicalAndExpr -> LogicalAndExpr AND_AND BitwiseOrExpr
+                | BitwiseOrExpr
+                .
+
+BitwiseOrExpr -> BitwiseOrExpr PIPE BitwiseXorExpr
+               | BitwiseXorExpr
+               .
+
+BitwiseXorExpr -> BitwiseXorExpr CARET BitwiseAndExpr
+                | BitwiseAndExpr
+                .
+
+BitwiseAndExpr -> BitwiseAndExpr AMP EqualityExpr
+                | EqualityExpr
+                .
+
+EqualityExpr -> EqualityExpr EQ_EQ RelationalExpr
+              | EqualityExpr BANG_EQ RelationalExpr
+              | RelationalExpr
+              .
+
+RelationalExpr -> RelationalExpr LT ShiftExpr
+                | RelationalExpr GT ShiftExpr
+                | RelationalExpr LTE ShiftExpr
+                | RelationalExpr GTE ShiftExpr
+                | ShiftExpr
+                .
+
+ShiftExpr -> ShiftExpr SHL AdditiveExpr
+           | ShiftExpr SHR AdditiveExpr
+           | AdditiveExpr
+           .
+
+AdditiveExpr -> AdditiveExpr PLUS MultiplicativeExpr
+              | AdditiveExpr MINUS MultiplicativeExpr
+              | MultiplicativeExpr
+              .
+
+MultiplicativeExpr -> MultiplicativeExpr STAR UnaryExpr
+                    | MultiplicativeExpr SLASH UnaryExpr
+                    | MultiplicativeExpr PERCENT UnaryExpr
+                    | UnaryExpr
+                    .
+
+UnaryExpr -> PostfixExpr
+           | PrefixOp UnaryExpr
+           .
+PrefixOp -> PLUSPLUS | MINUS_MINUS | AMP | STAR | PLUS | MINUS | BANG | TILDE .
+
+PostfixExpr -> PostfixExpr LBRACKET Expr RBRACKET
+             | PostfixExpr LBRACE ArgsOpt RBRACE
+             | PostfixExpr DOT IDENT
+             | PostfixExpr ARROW IDENT
+             | PostfixExpr PLUSPLUS
+             | PostfixExpr MINUS_MINUS
+             | PostfixExpr TILDE_GT Type
+             | PrimaryExpr
+             .
+
+ArgsOpt -> ArgList
+         |
+         .
+ArgList -> ArgList COMMA Expr
+         | Expr
+         .
+
+PrimaryExpr -> IDENT
+             | INT
+             | FLOAT
+             | CHAR_LIT
+             | STRING_LIT
+             | LPAREN Expr RPAREN
+             | BlockExpr
+             | IfExpr
+             | WhileExpr
+             | DoWhileExpr
+             | ForExpr
+             | SwitchExpr
+             .
+
 BlockExpr -> LPAREN ItemListOpt RPAREN .
 
 IfExpr -> IF LBRACE Expr RBRACE BlockExpr ELSE BlockExpr .
 
-WhileStmt -> WHILE LBRACE Expr RBRACE BlockExpr .
-DoWhileStmt -> DO BlockExpr WHILE LBRACE Expr RBRACE SEMICOLON .
+WhileExpr -> WHILE LBRACE Expr RBRACE BlockExpr .
 
-ForStmt -> FOR LBRACE ForInitOpt SEMICOLON ForCondOpt SEMICOLON ForIncrOpt RBRACE BlockExpr SEMICOLON .
-ForInitOpt -> LocalVarDecl | Expr | .
-ForCondOpt -> Expr | .
-ForIncrOpt -> Expr | .
+DoWhileExpr -> DO BlockExpr WHILE LBRACE Expr RBRACE .
 
-Expr -> Assign .
-Assign -> LValue ASSIGN Assign | OrExpr .
-LValue -> Postfix .
+ForExpr -> FOR LBRACE ForInitOpt SEMICOLON ForCondOpt SEMICOLON ForIncrOpt RBRACE BlockExpr .
+ForInitOpt -> LocalVarDecl
+            | Expr
+            |
+            .
+ForCondOpt -> Expr
+            |
+            .
+ForIncrOpt -> Expr
+            |
+            .
 
-OrExpr -> OrExpr OROR AndExpr | AndExpr .
-AndExpr -> AndExpr ANDAND BitOrExpr | BitOrExpr .
-BitOrExpr -> BitOrExpr PIPE BitXorExpr | BitXorExpr .
-BitXorExpr -> BitXorExpr CARET BitAndExpr | BitAndExpr .
-BitAndExpr -> BitAndExpr AMP Equality | Equality .
-Equality -> Equality EQEQ Rel | Equality BANGEQ Rel | Rel .
-Rel -> Rel LT Shift | Rel GT Shift | Rel LTE Shift | Rel GTE Shift | Shift .
-Shift -> Shift SHL Add | Shift SHR Add | Add .
-Add -> Add PLUS Mul | Add MINUS Mul | Mul .
-Mul -> Mul STAR Factor | Mul SLASH Factor | Mul PERCENT Factor | Factor .
-
-Factor -> Postfix | Prefixed .
-Prefixed -> BANG Factor
-         | TILDE Factor
-         | PLUS Factor
-         | MINUS Factor
-         | PLUSPLUS Factor
-         | MINUSMINUS Factor
-         | STAR Factor
-         | AMP Factor .
-
-Postfix -> Postfix PLUSPLUS
-        | Postfix MINUSMINUS
-        | Postfix LBRACKET Expr RBRACKET
-        | Postfix DOT IDENT
-        | Postfix ARROW IDENT
-        | Postfix LBRACE ArgsOpt RBRACE
-        | Simple .
-
-Simple -> CastExpr | IDENT | PrimaryNoIdent .
-CastExpr -> IDENT TILDE_GT Type .
-ArgsOpt -> ArgList | .
-ArgList -> ArgList COMMA Expr | Expr .
-
-Primary -> BlockExpr
-        | IfExpr
-        | LPAREN Expr RPAREN
-        | IDENT
-        | INT
-        | CHAR_LIT
-        | STRING_LIT
-        | SwitchExpr .
-
-PrimaryNoIdent -> BlockExpr
-               | IfExpr
-               | LPAREN Expr RPAREN
-               | INT
-               | CHAR_LIT
-               | STRING_LIT
-               | SwitchExpr .
-
-SwitchExpr -> SWITCH LPAREN Expr RPAREN LBRACE CaseList DefaultCase RBRACE .
-CaseList -> CaseList Case | .
+SwitchExpr -> SWITCH LPAREN Expr RPAREN LBRACE CaseListOpt DefaultCaseOpt RBRACE .
+CaseListOpt -> CaseList
+             |
+             .
+CaseList -> CaseList Case
+          | Case
+          .
 Case -> INT ARROW Expr SEMICOLON .
-DefaultCase -> ELSE ARROW Expr SEMICOLON .
+DefaultCaseOpt -> ELSE ARROW Expr SEMICOLON
+                |
+                .

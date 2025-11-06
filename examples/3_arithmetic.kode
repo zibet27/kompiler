@@ -10,7 +10,7 @@ fun main{}: i32 (
     i32 quotient = a / b;  // Division
     i32 remainder = a % b;  // Modulo
 
-    i32 c = (a + b) * (a - b);  // Parenthesized expressions
+    i32 c = { a + b } * { a - b };  // Parenthesized expressions
 
     print_int{ a };
     print_int{ b };

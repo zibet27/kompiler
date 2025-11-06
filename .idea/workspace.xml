@@ -5,15 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstPrint.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserE2ETest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cache/kode-parsing-table.json" beforeDir="false" afterPath="$PROJECT_DIR$/cache/kode-parsing-table.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cache/kode-parsing-table.lock" beforeDir="false" afterPath="$PROJECT_DIR$/cache/kode-parsing-table.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/kode.grammar" beforeDir="false" afterPath="$PROJECT_DIR$/docs/kode.grammar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/12_casting.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/12_casting.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/13_void_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/13_void_pointers.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/14_complex_expression.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/14_complex_expression.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/1_hello_world.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/1_hello_world.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/3_arithmetic.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/3_arithmetic.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/4_logical.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/4_logical.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/7_loops.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/7_loops.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/8_switch_case.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/8_switch_case.kode" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Lexer.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Token.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/Ast.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstValue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/Grammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/Grammar.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserGeneratorTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserGeneratorTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,8 +77,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Kotlin File" />
         <option value="Kotlin Class" />
+        <option value="Kotlin File" />
       </list>
     </option>
   </component>
@@ -106,6 +124,10 @@
       </variant>
     </executable>
   </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="Tk0vk82F" />
   </component>
@@ -121,10 +143,13 @@
   "keyToString": {
     "Gradle.Build kompiler.executor": "Run",
     "Gradle.LexerTest.executor": "Run",
+    "Gradle.ParserE2ETest (1).executor": "Run",
+    "Gradle.ParserE2ETest.executor": "Run",
     "Gradle.ParserGeneratorTest (1).executor": "Run",
     "Gradle.ParserGeneratorTest.executor": "Run",
     "Gradle.ParserTest (1).executor": "Run",
     "Gradle.ParserTest.executor": "Run",
+    "Gradle.Tests in 'kompiler.nativeTest'.executor": "Run",
     "Gradle.kompiler [:MainKt.main()].executor": "Run",
     "Gradle.kompiler [compileKotlinNative].executor": "Run",
     "Gradle.kompiler [linkDebugExecutableNative].executor": "Run",
@@ -165,22 +190,23 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/examples" />
+      <recent name="$PROJECT_DIR$/docs" />
       <recent name="$PROJECT_DIR$/cache" />
       <recent name="$PROJECT_DIR$/build" />
-      <recent name="$PROJECT_DIR$/examples" />
     </key>
     <key name="K2MoveDeclarationsDialog.RECENT_PACKAGE_KEY">
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.runDebugExecutableNative">
+  <component name="RunManager" selected="Gradle.Tests in 'kompiler.nativeTest'">
     <configuration default="true" type="AppleRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" IS_LOCATION_SIMULATION_SUPPORTED="false" IS_LOCATION_SIMULATION_ALLOWED="true" APPLICATION_LANGUAGE="IDELaunchSchemeLanguageUseSystemLanguage" APPLICATION_REGION="" DEVELOPMENT_TEAM="${TEAM_ID}" MAKE_ACTIVE="TRUE" SHOULD_DEBUG_EXTENSIONS="false">
       <embedded_app_extension_list />
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ParserGeneratorTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="ParserE2ETest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -193,7 +219,7 @@
           <list>
             <option value=":cleanNativeTest" />
             <option value=":nativeTest" />
-            <option value="--tests &quot;test.ParserGeneratorTest&quot;" />
+            <option value="--tests &quot;test.ParserE2ETest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -218,6 +244,29 @@
             <option value=":cleanNativeTest" />
             <option value=":nativeTest" />
             <option value="--tests &quot;test.ParserTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="Tests in 'kompiler.nativeTest'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":cleanNativeTest" />
+            <option value=":nativeTest" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -317,7 +366,10 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.Tests in 'kompiler.nativeTest'" />
+        <item itemvalue="Gradle.ParserTest (1)" />
         <item itemvalue="Gradle.runDebugExecutableNative" />
+        <item itemvalue="Gradle.ParserE2ETest (1)" />
         <item itemvalue="Gradle.kompiler [runReleaseExecutableNative]" />
       </list>
     </recent_temporary>
@@ -342,7 +394,8 @@
       <workItem from="1761852843054" duration="26695000" />
       <workItem from="1762038815090" duration="15205000" />
       <workItem from="1762085738103" duration="6675000" />
-      <workItem from="1762092445508" duration="11385000" />
+      <workItem from="1762092445508" duration="28493000" />
+      <workItem from="1762428596069" duration="8674000" />
     </task>
     <servers />
   </component>

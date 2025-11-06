@@ -3,6 +3,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readString
 import parser.KodeParser
+import parser.ast.prettyPrint
 
 fun main(args: Array<String>) {
     val path = args.firstOrNull()
@@ -22,5 +23,5 @@ fun main(args: Array<String>) {
     }
     val parser = KodeParser()
     val tree = parser.parse(source)
-    println(tree)
+    println(tree.prettyPrint())
 }

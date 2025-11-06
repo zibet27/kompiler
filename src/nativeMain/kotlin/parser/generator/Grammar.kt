@@ -19,7 +19,9 @@ data class Terminal(val t: TokenType) : Symbol() {
 }
 
 @Serializable(with = NonTerminalSerializer::class)
-data class NonTerminal(val name: String) : Symbol()
+data class NonTerminal(val name: String) : Symbol() {
+    override fun toString(): String = name
+}
 
 val String.nt get() = NonTerminal(name = this)
 val TokenType.t get() = Terminal(t = this)

@@ -14,7 +14,7 @@ fun main{}: i32 (
     i32 ptr int_ptr = generic_ptr ~> i32 ptr;
 
     // Cast between pointer types
-    char ptr char_ptr = int_ptr ~> char ptr;
+    u8 ptr char_ptr = int_ptr ~> u8 ptr;
 
     print_int{ i2 };  // Should print 3 (truncated)
     print_double{ d2 };  // Should print 42.0

@@ -90,18 +90,31 @@ class LexerImpl(private val source: String) : Lexer {
     }
 
     private fun lexNumber(start: Position): Token {
-        val text = StringBuilder()
+        val intPart = StringBuilder()
         while (true) {
             val ch = peek() ?: break
             if (!ch.isDigit()) break
-            text.append(ch)
+            intPart.append(ch)
             advance()
         }
-        return Token.IntLiteral(span = makeSpan(start), lexeme = text.toString())
+        // Optional fractional part: '.' DIGITS
+        if (peek() == '.' && (peek(1)?.isDigit() == true)) {
+            // consume '.'
+            advance()
+            val fracPart = StringBuilder()
+            while (true) {
+                val ch = peek() ?: break
+                if (!ch.isDigit()) break
+                fracPart.append(ch)
+                advance()
+            }
+            return Token.FloatLiteral(span = makeSpan(start), lexeme = "$intPart.$fracPart")
+        }
+        return Token.IntLiteral(span = makeSpan(start), lexeme = intPart.toString())
     }
 
     private fun lexString(start: Position): Token {
-        // opening '"' was already consumed
+        // opening " was already consumed
         val sb = StringBuilder()
         while (true) {
             val ch = advance() ?: throw LexError("Unterminated string literal", start)
@@ -175,6 +188,7 @@ class LexerImpl(private val source: String) : Lexer {
             '~' -> if (peek() == '>') { advance(); Token.TildeGreater(makeSpan(start)) } else Token.Tilde(makeSpan(start))
             '&' -> if (peek() == '&') { advance(); Token.AmpAmp(makeSpan(start)) } else Token.Amp(makeSpan(start))
             '|' -> if (peek() == '|') { advance(); Token.PipePipe(makeSpan(start)) } else Token.Pipe(makeSpan(start))
+            '^' -> Token.Caret(makeSpan(start))
             '<' -> when (peek()) {
                 '=' -> { advance(); Token.LessEqual(makeSpan(start)) }
                 '<' -> { advance(); Token.ShiftLeft(makeSpan(start)) }
