@@ -1,4 +1,4 @@
-package parser.ast
+package ast
 
 fun Node.prettyPrint(indent: Int = 0): String {
     val prefix = "  ".repeat(indent)
@@ -18,7 +18,7 @@ fun Node.prettyPrint(indent: Int = 0): String {
                 fields.joinToString("\n") { it.prettyPrint(indent + 1) } +
                 "\n$prefix])"
 
-        is TypeAlias -> "${prefix}TypeAlias(name='$name', paramTypes=[${paramTypes.joinToString { it.toTypeString() }}], target=${target.toTypeString()})"
+        is TypeAlias -> "${prefix}TypeAlias(name='$name', paramTypes=[${paramTypes.joinToString { it.toTypeString() }}], target=${returnType.toTypeString()})"
         is GlobalVarDecl -> "${prefix}GlobalVarDecl(type=${type.toTypeString()}, declarators=[${declarators.joinToString { it.name }}])"
 
         is FieldDecl -> "${prefix}FieldDecl(name='$name', type=${type.toTypeString()})"

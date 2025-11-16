@@ -1,8 +1,46 @@
 package test
 
+import ast.AlienFunDecl
+import ast.Assign
+import ast.AssignInit
+import ast.Binary
+import ast.BinaryOp
+import ast.BlockExpr
+import ast.BuiltinType
+import ast.Call
+import ast.Cast
+import ast.CharLit
+import ast.DoWhileExpr
+import ast.ExprStmt
+import ast.FloatLit
+import ast.ForExpr
+import ast.FunDecl
+import ast.FunDef
+import ast.GlobalVarDecl
+import ast.Ident
+import ast.IfExpr
+import ast.Index
+import ast.IntLit
+import ast.LocalVarDecl
+import ast.Member
+import ast.NamedType
+import ast.ObjectDecl
+import ast.ObjectDef
+import ast.PointerType
+import ast.PostfixDec
+import ast.PostfixInc
+import ast.Program
+import ast.SkipStmt
+import ast.StopStmt
+import ast.StringLit
+import ast.SwitchExpr
+import ast.TypeAlias
+import ast.Unary
+import ast.UnaryOp
+import ast.WhileExpr
+import ast.WithInit
 import kotlin.test.*
 import parser.KodeParser
-import parser.ast.*
 
 class ParserTest {
     private val parser = KodeParser()
@@ -499,7 +537,7 @@ class ParserTest {
         val alias = prog.decls[0] as TypeAlias
         assertEquals("BinaryOperation", alias.name)
         assertEquals(2, alias.paramTypes.size)
-        assertTrue(alias.target is BuiltinType)
+        assertTrue(alias.returnType is BuiltinType)
 
         // Check function definition
         val addFun = prog.decls[1] as FunDef

@@ -1,8 +1,9 @@
-package parser.ast
+package ast
 
 import lexer.Position
 import lexer.Span
 import lexer.Token
+import parser.ast.unexpected
 
 /**
  * Strongly typed semantic value used by LR semantic actions to avoid `Any?`.

@@ -1,5 +1,6 @@
 package parser.ast
 
+import ast.*
 import lexer.Position
 import lexer.Span
 import lexer.Token

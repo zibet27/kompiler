@@ -4,8 +4,8 @@ import lexer.LexerFactory
 import lexer.LexerImpl
 import lexer.Token
 import parser.ast.AstActions
-import parser.ast.AstValue
-import parser.ast.Program
+import ast.AstValue
+import ast.Program
 import parser.generator.GrammarRule
 import parser.generator.LALRParserGenerator
 import parser.generator.ParsingTable

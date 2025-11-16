@@ -1,4 +1,4 @@
-package parser.ast
+package ast
 
 import lexer.Span
 
@@ -51,7 +51,7 @@ data class ObjectDef(
 data class TypeAlias(
     val name: String,
     val paramTypes: List<TypeRef>,
-    val target: TypeRef,
+    val returnType: TypeRef,
     override val span: Span
 ) : TopDecl
 
