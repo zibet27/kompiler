@@ -5,15 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/Type.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/nativeInterop/cinterop/llvm.def" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstPrint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/TypeChecker.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,6 +42,18 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="kompiler" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="kompiler" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="kompiler" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="interop" type="c8890929:TasksNode$1" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
@@ -134,6 +146,9 @@
     &quot;Gradle.ParserTest.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Tests in 'kompiler.nativeTest'.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.kompiler [:MainKt.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kompiler [cleanNativeDistributionCommonization].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kompiler [commonizeNativeDistribution].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kompiler [commonize].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.kompiler [compileKotlinNative].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.kompiler [linkDebugExecutableNative].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.kompiler [linkReleaseExecutableNative].executor&quot;: &quot;Run&quot;,
@@ -185,11 +200,10 @@
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.ExamplesTypecheckTest">
-    <configuration default="true" type="AppleRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" IS_LOCATION_SIMULATION_SUPPORTED="false" IS_LOCATION_SIMULATION_ALLOWED="true" APPLICATION_LANGUAGE="IDELaunchSchemeLanguageUseSystemLanguage" APPLICATION_REGION="" DEVELOPMENT_TEAM="${TEAM_ID}" MAKE_ACTIVE="TRUE" SHOULD_DEBUG_EXTENSIONS="false">
-      <embedded_app_extension_list />
+  <component name="RunManager" selected="Gradle.runDebugExecutableNative">
+    <configuration default="true" type="Application" factoryName="Application">
       <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="ExamplesTypecheckTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -216,75 +230,70 @@
       <RunAsTest>true</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="ParserE2ETest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="kompiler [cleanNativeDistributionCommonization]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
+        <option name="scriptParameters" />
         <option name="taskDescriptions">
           <list />
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
-            <option value="--tests &quot;test.ParserE2ETest&quot;" />
+            <option value="cleanNativeDistributionCommonization" />
           </list>
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="ParserTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="kompiler [commonizeNativeDistribution]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
+        <option name="scriptParameters" />
         <option name="taskDescriptions">
           <list />
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
-            <option value="--tests &quot;test.ParserTest&quot;" />
+            <option value="commonizeNativeDistribution" />
           </list>
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
-    <configuration name="Tests in 'kompiler.nativeTest'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="kompiler [commonize]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
+        <option name="scriptParameters" />
         <option name="taskDescriptions">
           <list />
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
+            <option value="commonize" />
           </list>
         </option>
         <option name="vmOptions" />
       </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
     <configuration name="runDebugExecutableNative" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -354,11 +363,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.ExamplesTypecheckTest" />
         <item itemvalue="Gradle.runDebugExecutableNative" />
-        <item itemvalue="Gradle.Tests in 'kompiler.nativeTest'" />
-        <item itemvalue="Gradle.ParserTest" />
-        <item itemvalue="Gradle.ParserE2ETest" />
+        <item itemvalue="Gradle.kompiler [cleanNativeDistributionCommonization]" />
+        <item itemvalue="Gradle.kompiler [commonize]" />
+        <item itemvalue="Gradle.kompiler [commonizeNativeDistribution]" />
+        <item itemvalue="Gradle.ExamplesTypecheckTest" />
       </list>
     </recent_temporary>
   </component>
@@ -386,7 +395,8 @@
       <workItem from="1762428596069" duration="17107000" />
       <workItem from="1762528968581" duration="39000" />
       <workItem from="1762529550457" duration="4452000" />
-      <workItem from="1763311592320" duration="1714000" />
+      <workItem from="1763311592320" duration="16720000" />
+      <workItem from="1763380750040" duration="6082000" />
     </task>
     <servers />
   </component>

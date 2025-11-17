@@ -21,7 +21,9 @@ data class FunDecl(
     val params: List<Param>,
     val returnType: TypeRef,
     override val span: Span
-) : TopDecl
+) : TopDecl {
+    val type = FuncType(paramTypes = params.map { p -> p.type }, returnType, span)
+}
 
 data class FunDef(
     val name: String,
@@ -29,14 +31,18 @@ data class FunDef(
     val returnType: TypeRef,
     val body: Block,
     override val span: Span
-) : TopDecl
+) : TopDecl {
+    val type = FuncType(paramTypes = params.map { p -> p.type }, returnType, span)
+}
 
 data class AlienFunDecl(
     val name: String,
     val params: List<Param>,
-    val returnType: TypeRef?,
+    val returnType: TypeRef,
     override val span: Span
-) : TopDecl
+) : TopDecl {
+    val type = FuncType(paramTypes = params.map { p -> p.type }, returnType, span)
+}
 
 data class ObjectDecl(
     val name: String, override val span: Span
@@ -55,11 +61,16 @@ data class TypeAlias(
     override val span: Span
 ) : TopDecl
 
+interface VarDecl : Node {
+    val type: TypeRef
+    val declarators: List<Declarator>
+}
+
 data class GlobalVarDecl(
-    val type: TypeRef,
-    val declarators: List<Declarator>,
+    override val type: TypeRef,
+    override val declarators: List<Declarator>,
     override val span: Span
-) : TopDecl
+) : TopDecl, VarDecl
 
 data class FieldDecl(
     val name: String, val type: TypeRef, override val span: Span
@@ -71,10 +82,13 @@ data class Param(
 
 data class Declarator(
     val name: String,
-    val arrayDims: List<Expr>,
-    val init: Init?,
+    val arrayDims: List<IntLit>,
+    val init: Init,
     override val span: Span
-) : Node
+) : Node {
+    val totalArraySize: Int
+        get() = arrayDims.fold(1) { acc, dimExpr -> acc * dimExpr.value }
+}
 
 sealed interface Init : Node
 data class WithInit(val expr: Expr, override val span: Span) : Init
@@ -82,7 +96,6 @@ data class AssignInit(val expr: Expr, override val span: Span) : Init
 
 // Types
 sealed interface TypeRef : Node
-
 
 data class BuiltinType(val kind: Kind, override val span: Span) : TypeRef {
     enum class Kind {
@@ -111,10 +124,10 @@ data class Block(
 
 sealed interface Item : Node
 data class LocalVarDecl(
-    val type: TypeRef,
-    val declarators: List<Declarator>,
+    override val type: TypeRef,
+    override val declarators: List<Declarator>,
     override val span: Span
-) : Item
+) : Item, VarDecl
 
 data class ExprStmt(val expr: Expr, override val span: Span) : Item
 data class SkipStmt(override val span: Span) : Item
@@ -123,14 +136,14 @@ data class StopStmt(override val span: Span) : Item
 // Expressions
 sealed interface Expr : Node
 
-data class IntLit(val value: String, override val span: Span) : Expr
-data class FloatLit(val value: String, override val span: Span) : Expr
-data class CharLit(val value: String, override val span: Span) : Expr
+data class IntLit(val value: Int, override val span: Span) : Expr
+data class FloatLit(val value: Double, override val span: Span) : Expr
+data class CharLit(val value: UByte, override val span: Span) : Expr
 data class StringLit(val value: String, override val span: Span) : Expr
 data class Ident(val name: String, override val span: Span) : Expr
 data class Unary(val op: UnaryOp, val expr: Expr, override val span: Span) : Expr
 data class Binary(val op: BinaryOp, val left: Expr, val right: Expr, override val span: Span) : Expr
-data class Call(val callee: Expr, val args: List<Expr>, override val span: Span) : Expr
+data class Call(val callee: Ident, val args: List<Expr>, override val span: Span) : Expr
 data class Index(val target: Expr, val index: Expr, override val span: Span) : Expr
 data class Member(val target: Expr, val name: String, val viaArrow: Boolean, override val span: Span) : Expr
 data class Assign(val target: Expr, val value: Expr, override val span: Span) : Expr
@@ -144,8 +157,8 @@ data class SwitchExpr(val expr: Expr, val cases: List<SwitchCase>, val defaultCa
 
 data class SwitchCase(val value: Int, val result: Expr, override val span: Span) : Node
 data class Cast(val ident: String, val type: TypeRef, override val span: Span) : Expr
-data class PostfixInc(val target: Expr, override val span: Span) : Expr
-data class PostfixDec(val target: Expr, override val span: Span) : Expr
+data class PostfixInc(val target: Ident, override val span: Span) : Expr
+data class PostfixDec(val target: Ident, override val span: Span) : Expr
 
 enum class UnaryOp { Not, BitNot, Plus, Minus, Deref, AddressOf, PreInc, PreDec }
 

@@ -3,7 +3,9 @@ package ast.visitor
 import ast.*
 import lexer.Span
 
-data class Diagnostic(val message: String, val span: Span)
+data class Diagnostic(val message: String, val span: Span) {
+    override fun toString(): String = "Type error. $message at $span"
+}
 
 class Scope(val parent: Scope? = null) {
     val vars = mutableMapOf<String, Type>()
@@ -95,9 +97,7 @@ class TypeChecker(
             )
 
             is AlienFunDecl -> functions[d.name] = Type.Fn(
-                d.params.map { it.type.resolve() }, (d.returnType ?: BuiltinType(
-                    BuiltinType.Kind.Void, d.span
-                )).resolve()
+                params = d.params.map { it.type.resolve() }, ret = d.returnType.resolve()
             )
         }
     }
@@ -151,7 +151,7 @@ class TypeChecker(
 
     override fun visit(node: FieldDecl): Type = node.type.resolve()
     override fun visit(node: Param): Type = node.type.resolve()
-    override fun visit(node: Declarator): Type = node.init?.accept(this) ?: Type.Void
+    override fun visit(node: Declarator): Type = node.init.accept(this)
 
     override fun visit(node: WithInit): Type = node.expr.accept(this)
     override fun visit(node: AssignInit): Type = node.expr.accept(this)
@@ -170,11 +170,9 @@ class TypeChecker(
                 0 -> baseType
                 else -> Type.Ptr(baseType, levels = dec.arrayDims.size)
             }
-            dec.init?.let { init ->
-                val srcType = init.accept(this)
-                if (!srcType.canImplicitlyCastTo(other = baseType)) {
-                    report(init.span, "Cannot initialize '${dec.name}': $srcType is not assignable to $baseType")
-                }
+            val srcType = dec.init.accept(this)
+            if (!srcType.canImplicitlyCastTo(other = baseType)) {
+                report(dec.init.span, "Cannot initialize '${dec.name}': $srcType is not assignable to $baseType")
             }
         }
         return Type.Void

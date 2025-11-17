@@ -24,6 +24,11 @@ kotlin {
     }
 
     nativeTarget.apply {
+        compilations.getByName("main") {
+            cinterops {
+                val llvm by creating
+            }
+        }
         binaries {
             executable {
                 entryPoint = "main"

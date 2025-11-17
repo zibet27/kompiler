@@ -12,7 +12,7 @@ fun Node.prettyPrint(indent: Int = 0): String {
                 body.prettyPrint(indent + 1) +
                 "\n$prefix)"
 
-        is AlienFunDecl -> "${prefix}AlienFunDecl(name='$name', params=[${params.joinToString { it.name }}], returnType=${returnType?.toTypeString()})"
+        is AlienFunDecl -> "${prefix}AlienFunDecl(name='$name', params=[${params.joinToString { it.name }}], returnType=${returnType.toTypeString()})"
         is ObjectDecl -> "${prefix}ObjectDecl(name='$name')"
         is ObjectDef -> "${prefix}ObjectDef(name='$name', fields=[\n" +
                 fields.joinToString("\n") { it.prettyPrint(indent + 1) } +
@@ -23,7 +23,7 @@ fun Node.prettyPrint(indent: Int = 0): String {
 
         is FieldDecl -> "${prefix}FieldDecl(name='$name', type=${type.toTypeString()})"
         is Param -> "${prefix}Param(name='$name', type=${type.toTypeString()})"
-        is Declarator -> "${prefix}Declarator(name='$name'${if (arrayDims.isNotEmpty()) ", arrayDims=${arrayDims.size}" else ""}${if (init != null) ", init" else ""})"
+        is Declarator -> "${prefix}Declarator(name='$name'${if (arrayDims.isNotEmpty()) ", arrayDims=${arrayDims.size}" else ""}${", init"})"
         is WithInit -> "${prefix}WithInit(${expr.exprToString()})"
         is AssignInit -> "${prefix}AssignInit(${expr.exprToString()})"
 
@@ -82,8 +82,8 @@ private fun TypeRef.toTypeString(): String = when (this) {
 }
 
 private fun Expr.exprToString(): String = when (this) {
-    is IntLit -> value
-    is FloatLit -> value
+    is IntLit -> value.toString()
+    is FloatLit -> value.toString()
     is CharLit -> "'$value'"
     is StringLit -> "\"$value\""
     is Ident -> name
