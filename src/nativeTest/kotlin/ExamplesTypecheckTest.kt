@@ -32,12 +32,17 @@ class ExamplesTypecheckTest {
         var failed = 0
         files.forEach { path ->
             val source = readFile(path)
-            val program = parser.parse(source)
-            val checker = TypeChecker(program)
-            val diags = checker.check()
-            if (diags.isNotEmpty()) {
+            val diags = runCatching {
+                val program = parser.parse(source)
+                val checker = TypeChecker(program)
+                checker.check()
+            }
+            if (diags.isFailure) {
+                println("Failed to typecheck ${path.name}: ${diags.exceptionOrNull()?.message}")
+                failed++
+            } else if (diags.getOrNull()?.isNotEmpty() == true) {
                 println("Type errors in ${path.name}:")
-                diags.forEach { println("  ${it.span}: ${it.message}") }
+                diags.getOrThrow().forEach { println("  ${it.span}: ${it.message}") }
                 failed++
             }
         }

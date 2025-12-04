@@ -23,7 +23,6 @@ sealed interface AstValue {
 
     // Types and params
     data class Ty(val type: TypeRef) : AstValue
-    data class TyOpt(val type: TypeRef?) : AstValue
     data class Tys(val list: List<TypeRef>) : AstValue
     data class ParamV(val param: Param) : AstValue
     data class ParamsV(val list: List<Param>) : AstValue
@@ -48,13 +47,14 @@ sealed interface AstValue {
     // Switch cases
     data class SwitchCaseV(val case: SwitchCase) : AstValue
     data class SwitchCasesV(val list: List<SwitchCase>) : AstValue
+
+    data object Empty : AstValue
 }
 
 internal fun tok(v: AstValue) = (v as? AstValue.T ?: v.unexpected()).token
 internal fun td(v: AstValue) = (v as? AstValue.TD ?: v.unexpected())
 internal fun tds(v: AstValue) = (v as? AstValue.TDs ?: v.unexpected())
 internal fun ty(v: AstValue) = (v as? AstValue.Ty ?: v.unexpected())
-internal fun tyOpt(v: AstValue) = (v as AstValue.TyOpt)
 internal fun tys(v: AstValue) = (v as AstValue.Tys)
 internal fun param(v: AstValue) = (v as AstValue.ParamV)
 internal fun params(v: AstValue) = (v as AstValue.ParamsV)
@@ -99,9 +99,9 @@ internal fun span(values: List<AstValue>): Span {
         is AstValue.ExprsV -> v.list.firstOrNull()?.span?.let { remember(it) }
         is AstValue.SwitchCaseV -> remember(v.case.span)
         is AstValue.SwitchCasesV -> v.list.firstOrNull()?.span?.let { remember(it) }
-        is AstValue.TyOpt -> v.type?.span?.let { remember(it) }
         is AstValue.Tys -> v.list.firstOrNull()?.span?.let { remember(it) }
         is AstValue.InitV -> v.init?.span?.let { remember(it) }
+        is AstValue.Empty -> {}
     }
     return when {
         first != null && last != null -> Span(first.start, last.end)

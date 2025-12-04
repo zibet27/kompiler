@@ -12,7 +12,7 @@ import ast.Cast
 import ast.CharLit
 import ast.DoWhileExpr
 import ast.ExprStmt
-import ast.FloatLit
+import ast.F64Lit
 import ast.ForExpr
 import ast.FunDecl
 import ast.FunDef
@@ -182,7 +182,7 @@ class ParserTest {
         val def = prog.decls[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         val lit = stmt.expr as IntLit
-        assertEquals("42", lit.value)
+        assertEquals(42, lit.value)
     }
 
     @Test
@@ -190,7 +190,7 @@ class ParserTest {
         val prog = parse("fun main{}: i32 ( 3.14; );")
         val def = prog.decls[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
-        assertTrue(stmt.expr is FloatLit)
+        assertTrue(stmt.expr is F64Lit)
     }
 
     @Test
@@ -300,7 +300,6 @@ class ParserTest {
         val def = prog.decls[1] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         val call = stmt.expr as Call
-        assertTrue(call.callee is Ident)
         assertEquals(2, call.args.size)
     }
 

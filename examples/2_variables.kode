@@ -1,12 +1,12 @@
-alien fun print_int{ x: i32 };
-alien fun print_char{ c: u8 };
-alien fun print_double{ d: f64 };
+alien fun print_int{ x: i32 }: void;
+alien fun print_char{ c: u8 }: void;
+alien fun print_double{ d: f64 }: void;
 
 i32 global_var = 10;  // Global variable with initialization
 u8 global_array[10] with ' ';  // Global array
 
 fun main{}: i32 (
-    i32 a;      // Declaration without initialization
+    i32 a = -1;      // Declaration with initialization
     i32 b = 5;  // Declaration with initialization
     f64 c = 3.14;  // Double type
     u8 d = 'x';  // Char type

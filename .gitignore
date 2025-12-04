@@ -32,6 +32,8 @@ bin/
 /nbdist/
 /.nb-gradle/
 
+.fleet/
+
 ### VS Code ###
 .vscode/
 
@@ -40,3 +42,7 @@ bin/
 
 cache/
 .kotlin/
+
+*.o
+*.ll
+*.wasm

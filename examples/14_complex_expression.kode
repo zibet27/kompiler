@@ -1,5 +1,5 @@
-alien fun print_int{ x: i32 };
-alien fun print_char{ c: u8 };
+alien fun print_int{ x: i32 }: void;
+alien fun print_char{ c: u8 }: void;
 
 fun add{ a: i32, b: i32 }: i32 (
     a + b;

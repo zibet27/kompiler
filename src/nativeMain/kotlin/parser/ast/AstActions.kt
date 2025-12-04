@@ -89,7 +89,7 @@ object AstActions : SemanticActions<AstValue> {
             KodeGrammar.NT.FunHeader -> {
                 val name = tok(children[1]).lexeme
                 val params = params(children[3]).list
-                val retType = tyOpt(children[5]).type
+                val retType = ty(children[5]).type
                 AstValue.FunHeaderV(name, params, retType, span(children))
             }
 
@@ -100,7 +100,7 @@ object AstActions : SemanticActions<AstValue> {
             }
 
             KodeGrammar.NT.AlienFunDecl -> AstValue.TD(
-                AlienFunDecl(tok(children[2]).lexeme, params(children[4]).list, tyOpt(children[6]).type, span(children))
+                AlienFunDecl(tok(children[2]).lexeme, params(children[4]).list, ty(children[6]).type, span(children))
             )
 
             KodeGrammar.NT.ObjectHeader -> AstValue.ObjectHeaderV(tok(children[1]).lexeme, span(children))
@@ -198,8 +198,12 @@ object AstActions : SemanticActions<AstValue> {
 
             KodeGrammar.NT.Declarator -> {
                 val nameTok = tok(children[0])
-                val dims = exprs(children[1]).list
+                val dims =
+                    exprs(children[1]).list.map { it as? IntLit ?: error("Expected int literal for array dimension") }
                 val init = initV(children[2]).init
+                require(init != null) {
+                    "Uninitialized variable $nameTok at ${nameTok.span}."
+                }
                 AstValue.DeclaratorV(Declarator(nameTok.lexeme, dims, init, span(children)))
             }
 
@@ -377,7 +381,13 @@ object AstActions : SemanticActions<AstValue> {
                 }
 
                 4 -> when (val t = tok(children[1])) {
-                    is Token.LBrace -> AstValue.ExprV(Call(expr(children[0]), exprs(children[2]).list, span(children)))
+                    is Token.LBrace -> {
+                        val callee = expr(children[0]) as? Ident ?: error(
+                            "Identifier expected at ${span(children)}"
+                        )
+                        val expr = Call(callee, exprs(children[2]).list, span(children))
+                        AstValue.ExprV(expr)
+                    }
 
                     is Token.LBracket -> AstValue.ExprV(Index(expr(children[0]), expr(children[2]), span(children)))
 
@@ -392,9 +402,9 @@ object AstActions : SemanticActions<AstValue> {
                 is AstValue.T -> {
                     val e: Expr = when (val t = v.token) {
                         is Token.Identifier -> Ident(t.lexeme, t.span)
-                        is Token.IntLiteral -> IntLit(t.lexeme, t.span)
-                        is Token.FloatLiteral -> FloatLit(t.lexeme, t.span)
-                        is Token.CharLiteral -> CharLit(t.lexeme, t.span)
+                        is Token.IntLiteral -> IntLit(t.lexeme.toInt(), t.span)
+                        is Token.FloatLiteral -> F64Lit(t.lexeme.toDouble(), t.span)
+                        is Token.CharLiteral -> CharLit(t.lexeme.toCharArray().first().code.toUByte(), t.span)
                         is Token.StringLiteral -> StringLit(t.lexeme, t.span)
                         else -> t.unexpected()
                     }
@@ -484,15 +494,15 @@ object AstActions : SemanticActions<AstValue> {
 
             KodeGrammar.NT.ForCondOpt -> if (rhs.isEmpty()) AstValue.ExprV(
                 IntLit(
-                    "1", Span(Position.Zero, Position.Zero)
+                    1, Span(Position.Zero, Position.Zero)
                 )
             ) else children[0]
 
-            KodeGrammar.NT.ForIncrOpt -> if (rhs.isEmpty()) AstValue.ExprV(
-                IntLit(
-                    "0", Span(Position.Zero, Position.Zero)
+            KodeGrammar.NT.ForIncrOpt -> if (rhs.isEmpty()) {
+                AstValue.ExprV(
+                    IntLit(0, Span(Position.Zero, Position.Zero))
                 )
-            ) else children[0]
+            } else children[0]
 
             KodeGrammar.NT.SwitchExpr -> {
                 // switch { expr } (cases defaultCase)
@@ -519,9 +529,7 @@ object AstActions : SemanticActions<AstValue> {
                 AstValue.SwitchCaseV(SwitchCase(value, result, span(children)))
             }
 
-            KodeGrammar.NT.DefaultCaseOpt -> if (rhs.isEmpty()) {
-                AstValue.ExprV(IntLit("0", Span(Position.Zero, Position.Zero)))
-            } else {
+            KodeGrammar.NT.DefaultCaseOpt -> if (rhs.isEmpty()) AstValue.Empty else {
                 // else -> Expr ;
                 children[2]
             }
@@ -554,7 +562,9 @@ object AstActions : SemanticActions<AstValue> {
                 )
             }
 
-            KodeGrammar.NT.RetTypeOpt -> if (rhs.isEmpty()) AstValue.TyOpt(null) else AstValue.TyOpt(ty(children[1]).type)
+            KodeGrammar.NT.RetTypeOpt -> if (rhs.isEmpty()) {
+                error("Return type expected at ${span(children)}")
+            } else AstValue.Ty(ty(children[1]).type)
 
             else -> if (children.size == 1) children[0] else error("Unhandled reduction for ${rule.lhs} := ${rule.rhs}")
         }
@@ -568,4 +578,4 @@ object AstActions : SemanticActions<AstValue> {
     ) else children[0]
 }
 
-fun AstValue.unexpected(): Nothing = error("Unexpected syntax $this")
+fun AstValue.unexpected(): Nothing = error("Unexpected syntax $this at ${span(listOf(this))}")

@@ -1,9 +1,8 @@
-headers = llvm-c/Core.h
+headers = llvm-c/Analysis.h llvm-c/Core.h llvm-c/BitWriter.h
 headerFilter = llvm-c/**
 
 # Homebrew LLVM include directory
 compilerOpts = -I/opt/homebrew/opt/llvm/include
 
-# Link against common LLVM components
-linkerOpts = -L/opt/homebrew/opt/llvm/lib \
-             -lLLVMCore -lLLVMSupport -lLLVMIRReader
+# Link against LLVM unified library
+linkerOpts = -L/opt/homebrew/opt/llvm/lib -lLLVM-21

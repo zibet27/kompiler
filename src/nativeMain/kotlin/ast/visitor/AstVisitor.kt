@@ -38,7 +38,7 @@ interface AstVisitor<R> {
 
     // Expressions
     fun visit(node: IntLit): R
-    fun visit(node: FloatLit): R
+    fun visit(node: F64Lit): R
     fun visit(node: CharLit): R
     fun visit(node: StringLit): R
     fun visit(node: Ident): R
@@ -85,7 +85,7 @@ fun <R> Node.accept(v: AstVisitor<R>): R = when (this) {
     is SkipStmt -> v.visit(this)
     is StopStmt -> v.visit(this)
     is IntLit -> v.visit(this)
-    is FloatLit -> v.visit(this)
+    is F64Lit -> v.visit(this)
     is CharLit -> v.visit(this)
     is StringLit -> v.visit(this)
     is Ident -> v.visit(this)
@@ -105,4 +105,5 @@ fun <R> Node.accept(v: AstVisitor<R>): R = when (this) {
     is Cast -> v.visit(this)
     is PostfixInc -> v.visit(this)
     is PostfixDec -> v.visit(this)
+    else -> error("Unrecognized node type: ${this::class.simpleName}")
 }

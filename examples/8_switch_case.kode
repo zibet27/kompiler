@@ -1,4 +1,4 @@
-alien fun print_string{ s: u8 ptr };
+alien fun print_string{ s: u8 ptr }: void;
 
 fun main{}: i32 (
     i32 day = 3;

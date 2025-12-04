@@ -1,4 +1,4 @@
-alien fun print_int{ x: i32 };
+alien fun print_int{ x: i32 }: void;
 
 // Struct declaration
 object Point (
@@ -15,12 +15,12 @@ object Rectangle(
     bottom_right: Point;
 );
 
-fun print_point{ p: Point } (
+fun print_point{ p: Point }: void (
     print_int{ p.x }; // Print x coordinate
     print_int{ p.y }; // Print y coordinate
 );
 
-fun print_rectangle{ rect: Rectangle } (
+fun print_rectangle{ rect: Rectangle }: void (
     print_point{ rect.top_left }; // Print top-left point
     print_point{ rect.bottom_right }; // Print bottom-right point
 );

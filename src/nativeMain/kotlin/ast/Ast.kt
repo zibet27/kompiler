@@ -137,7 +137,7 @@ data class StopStmt(override val span: Span) : Item
 sealed interface Expr : Node
 
 data class IntLit(val value: Int, override val span: Span) : Expr
-data class FloatLit(val value: Double, override val span: Span) : Expr
+data class F64Lit(val value: Double, override val span: Span) : Expr
 data class CharLit(val value: UByte, override val span: Span) : Expr
 data class StringLit(val value: String, override val span: Span) : Expr
 data class Ident(val name: String, override val span: Span) : Expr
@@ -157,8 +157,8 @@ data class SwitchExpr(val expr: Expr, val cases: List<SwitchCase>, val defaultCa
 
 data class SwitchCase(val value: Int, val result: Expr, override val span: Span) : Node
 data class Cast(val ident: String, val type: TypeRef, override val span: Span) : Expr
-data class PostfixInc(val target: Ident, override val span: Span) : Expr
-data class PostfixDec(val target: Ident, override val span: Span) : Expr
+data class PostfixInc(val target: Expr, override val span: Span) : Expr
+data class PostfixDec(val target: Expr, override val span: Span) : Expr
 
 enum class UnaryOp { Not, BitNot, Plus, Minus, Deref, AddressOf, PreInc, PreDec }
 

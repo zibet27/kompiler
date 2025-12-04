@@ -37,7 +37,7 @@ fun Node.prettyPrint(indent: Int = 0): String {
         is StopStmt -> "${prefix}StopStmt"
 
         is IntLit -> "${prefix}IntLit($value)"
-        is FloatLit -> "${prefix}FloatLit($value)"
+        is F64Lit -> "${prefix}FloatLit($value)"
         is CharLit -> "${prefix}CharLit('$value')"
         is StringLit -> "${prefix}StringLit(\"$value\")"
         is Ident -> "${prefix}Ident($name)"
@@ -83,7 +83,7 @@ private fun TypeRef.toTypeString(): String = when (this) {
 
 private fun Expr.exprToString(): String = when (this) {
     is IntLit -> value.toString()
-    is FloatLit -> value.toString()
+    is F64Lit -> value.toString()
     is CharLit -> "'$value'"
     is StringLit -> "\"$value\""
     is Ident -> name

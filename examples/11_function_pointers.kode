@@ -2,7 +2,7 @@
 typealias BinaryOperation = { i32, i32 } -> i32;
 typealias VoidFunction = { } -> void;
 
-alien fun print_int{ x: i32 };
+alien fun print_int{ x: i32 }: void;
 
 // Functions to use with function pointers
 fun add{ a: i32, b: i32 }: i32 (

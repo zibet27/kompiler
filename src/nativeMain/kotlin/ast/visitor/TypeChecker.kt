@@ -183,7 +183,7 @@ class TypeChecker(
     override fun visit(node: StopStmt): Type = Type.Void
 
     override fun visit(node: IntLit): Type = Type.I32
-    override fun visit(node: FloatLit): Type = Type.F64
+    override fun visit(node: F64Lit): Type = Type.F64
     override fun visit(node: CharLit): Type = Type.U8
     override fun visit(node: StringLit): Type = Type.Ptr(Type.U8, 1)
 

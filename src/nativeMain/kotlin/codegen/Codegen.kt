@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalForeignApi::class)
-
 package codegen
 
 import ast.*
@@ -7,13 +5,16 @@ import ast.visitor.AstVisitor
 import ast.visitor.accept
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.cValuesOf
+import kotlinx.cinterop.toCValues
 import kotlinx.cinterop.toKString
 import llvm.*
 
+@OptIn(ExperimentalForeignApi::class)
 class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Program): LLVMValueRef? {
         // First pass: declare opaque structs
+        println("[Codegen] Pass1: struct declarations (${node.decls.size} decls)")
         for (it in node.decls) {
             when (it) {
                 is ObjectDecl -> {
@@ -23,14 +24,10 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
                 is ObjectDef -> {
                     val structType = structs[it.name] ?: LLVMStructCreateNamed(context, it.name)
-                    structs[it.name] = structType
-                    structFields[it.name] = it.fields
+                    registerStruct(it.name, structType!!, it.fields)
 
-                    val fieldTypes = it.fields.map { field ->
-                        field.type.toLLVM()
-                    }.toTypedArray()
-                    val types = cValuesOf(*fieldTypes)
-                    LLVMStructSetBody(structType, types, fieldTypes.size.toUInt(), 0)
+                    val fieldTypes = it.fields.map { field -> field.type.toLLVM() }.toTypedArray()
+                    LLVMStructSetBody(structType, cValuesOf(*fieldTypes), fieldTypes.size.toUInt(), 0)
                 }
 
                 else -> continue
@@ -38,16 +35,16 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         }
 
         // Declare prototypes for functions and globals
+        println("[Codegen] Pass2: prototypes and globals")
         for (it in node.decls) {
             when (it) {
-                is FunDecl -> ensureFunction(it.name, it.type.toLLVM())
-                is FunDef -> ensureFunction(it.name, it.type.toLLVM())
-                is AlienFunDecl -> ensureFunction(it.name, it.type.toLLVM())
+                is FunDecl -> ensureFunction(it.name, it.params, it.type, alien = false)
+                is FunDef -> ensureFunction(it.name, it.params, it.type, alien = false)
+                is AlienFunDecl -> ensureFunction(it.name, it.params, it.type, alien = true)
                 is GlobalVarDecl -> {
                     val baseType = it.type.toLLVM()
                     it.declarators.forEach { d ->
-                        val ty = baseType.withDimensions(d.arrayDims)
-                        globals[d.name] = LLVMAddGlobal(M = module, Ty = ty, Name = d.name)
+                        addGlobal(d.name, type = baseType.withDimensions(d.arrayDims))
                     }
                 }
 
@@ -56,6 +53,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         }
 
         // generate bodies
+        println("[Codegen] Pass3: definitions & bodies")
         node.decls.forEach { it.accept(this) }
         return null
     }
@@ -63,7 +61,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     override fun visit(node: FunDecl) = null
 
     override fun visit(node: FunDef): LLVMValueRef? {
-        val fn = functions[node.name] ?: error("Function ${node.name} not found")
+        val fn = functions[node.name]?.value ?: error("Function ${node.name} not found")
         currentFunction = fn
 
         val entry = addBasicBlock("entry")
@@ -77,21 +75,25 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
             repeat(paramCount) { idx ->
                 params += LLVMGetParam(fn, idx.toUInt())!!
             }
+
+            println("[Codegen] generating params")
             node.params.forEachIndexed { i, p ->
-                val alloca = buildAlloca(p.type.toLLVM(), p.name)
+                val allocaType = p.type.toLLVM()
+                val alloca = buildAlloca(p.name, allocaType)
                 LLVMBuildStore(builder, params[i], alloca)
-                putLocal(p.name, alloca)
+                putLocal(p.name, alloca, allocaType)
             }
 
-            node.body.accept(this)
+            println("[Codegen] generating body")
+            val bodyVal = node.body.accept(this)
 
-            val retTy = node.returnType.toLLVM()
-            // If function not terminated, emit return
-            val currentBlock = LLVMGetInsertBlock(builder)
-            val hasTerminator = LLVMGetBasicBlockTerminator(currentBlock) != null
-            if (!hasTerminator) {
-                require(isVoid(retTy))
+            println("[Codegen] generating return")
+
+            if (node.returnType.toLLVM().isVoid) {
                 LLVMBuildRetVoid(builder)
+            } else {
+                requireNotNull(bodyVal) { "Function ${node.name} must return a value (last expression of the body)." }
+                LLVMBuildRet(builder, bodyVal)
             }
         }
         currentFunction = null
@@ -117,7 +119,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     override fun visit(node: GlobalVarDecl): LLVMValueRef? {
         val baseType = node.type.toLLVM()
         node.declarators.forEach { d ->
-            val gv = globals[d.name]!!
+            val gv = globals[d.name]!!.value
             when (d.init) {
                 is WithInit -> {
                     require(!d.arrayDims.isEmpty()) {
@@ -125,11 +127,9 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
                     }
                     val initVal = d.init.expr.accept(this)!!
                     val totalSize = d.totalArraySize
-                    val elements = Array(totalSize) { initVal }
+                    val elements = List(totalSize) { initVal }.toCValues()
                     val constArray = LLVMConstArray(
-                        ElementTy = baseType,
-                        ConstantVals = cValuesOf(*elements),
-                        Length = totalSize.toUInt()
+                        ElementTy = baseType, ConstantVals = elements, Length = totalSize.toUInt()
                     )
                     LLVMSetInitializer(gv, constArray)
                 }
@@ -172,8 +172,8 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         val baseType = node.type.toLLVM()
         node.declarators.forEach { d ->
             val allocaType = baseType.withDimensions(d.arrayDims)
-            val alloca = buildAlloca(allocaType, d.name)
-            putLocal(d.name, alloca)
+            val alloca = buildAlloca(d.name, allocaType)
+            putLocal(d.name, alloca, allocaType)
 
             when (d.init) {
                 is WithInit -> {
@@ -181,9 +181,8 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
                     val initVal = d.init.expr.accept(this)!!
                     for (i in 0 until d.totalArraySize) {
-                        val idx = constI32(i.toULong())
-                        val indices = cValuesOf(zero, idx)
-                        val elemPtr = LLVMBuildGEP2(builder, allocaType, alloca, indices, 2u, "init_ptr")
+                        val indices = listOf(zero, i.i32())
+                        val elemPtr = buildInBoundsGEP(alloca, allocaType, indices, name = "int_ptr")
                         LLVMBuildStore(builder, initVal, elemPtr)
                     }
                 }
@@ -205,13 +204,11 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     override fun visit(node: StopStmt) = null
 
     override fun visit(node: IntLit): LLVMValueRef {
-        val ty = LLVMInt32TypeInContext(context)
-        return LLVMConstInt(IntTy = ty, node.value.toULong(), SignExtend = 1)!!
+        return node.value.i32()
     }
 
-    override fun visit(node: FloatLit): LLVMValueRef {
-        val ty = LLVMDoubleTypeInContext(context)
-        return LLVMConstReal(RealTy = ty, N = node.value)!!
+    override fun visit(node: F64Lit): LLVMValueRef {
+        return node.value.toLLVM()
     }
 
     override fun visit(node: CharLit): LLVMValueRef {
@@ -225,56 +222,34 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Ident): LLVMValueRef {
         // Variable or function
-        val local = getLocal(node.name)
-        if (local != null) {
-            val ty = LLVMTypeOf(local)
-            val loadedTy = if (isPointer(ty)) LLVMGetElementType(ty) else ty
-            return LLVMBuildLoad2(builder, loadedTy, PointerVal = local, node.name)!!
+        val variable = getLocal(node.name) ?: globals[node.name]
+        if (variable != null) {
+            return load(variable.value, variable.type, node.name)
         }
-        val glob = globals[node.name]
-        if (glob != null) {
-            val elemTy = LLVMGetElementType(LLVMTypeOf(glob))
-            return LLVMBuildLoad2(builder, elemTy, PointerVal = glob, node.name)!!
-        }
-        return functions[node.name]!!
+        return functions[node.name]!!.value
     }
 
     override fun visit(node: Unary): LLVMValueRef? {
-        val v = node.expr.accept(this)
         return when (node.op) {
-            UnaryOp.Plus -> v
+            UnaryOp.PreInc -> buildIncDec(node.expr, isIncrement = true, isPrefix = true)
+            UnaryOp.PreDec -> buildIncDec(node.expr, isIncrement = false, isPrefix = true)
+            UnaryOp.AddressOf -> getLValuePtr(node.expr).value
+            UnaryOp.Plus -> node.expr.accept(this)
             UnaryOp.Minus -> {
-                if (isFloatLike(LLVMTypeOf(v))) {
-                    LLVMBuildFNeg(builder, v, "neg")
-                } else {
-                    LLVMBuildNeg(builder, v, "neg")
+                val v = node.expr.accept(this)
+                when {
+                    v.type.isFloatLike -> LLVMBuildFNeg(builder, v, "neg")
+                    else -> LLVMBuildNeg(builder, v, "neg")
                 }
             }
 
-            UnaryOp.BitNot -> LLVMBuildNot(builder, v, "not")!!
-            UnaryOp.Not -> {
-                // not supported precisely; return 0 (false)
-                LLVMConstInt(LLVMInt1TypeInContext(context), 0u, 0)
-            }
+            UnaryOp.BitNot -> LLVMBuildNot(builder, node.expr.accept(this), "not")!!
+            UnaryOp.Not -> error("Not operator is not supported in native backend")
 
             UnaryOp.Deref -> {
-                val elemTy = LLVMGetElementType(LLVMTypeOf(v))
-                LLVMBuildLoad2(builder, elemTy, v, "deref")
-            }
-
-            UnaryOp.AddressOf -> {
-                // assume operand was lvalue alloca; if not, no-op
-                null
-            }
-
-            UnaryOp.PreInc -> {
-                val one = LLVMConstInt(LLVMTypeOf(v), 1u, 0)
-                LLVMBuildAdd(builder, v, one, "inc")
-            }
-
-            UnaryOp.PreDec -> {
-                val one = LLVMConstInt(LLVMTypeOf(v), 1u, 0)
-                LLVMBuildSub(builder, v, one, "dec")
+                val value = node.expr.accept(this)!!
+                println("DEREF")
+                load(value, value.type, name = "deref")
             }
         }
     }
@@ -282,7 +257,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     override fun visit(node: Binary): LLVMValueRef? {
         val lv = node.left.accept(this)
         val rv = node.right.accept(this)
-        val isFloat = isFloatLike(LLVMTypeOf(lv))
+        val isFloat = lv.type.isFloatLike
 
         return when (node.op) {
             BinaryOp.Add -> when (isFloat) {
@@ -321,116 +296,95 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Call): LLVMValueRef {
         val fn = functions[node.callee.name]!!
-        val fnTy = LLVMTypeOf(fn)
-        val argVals = node.args.map { it.accept(this) }.toTypedArray()
-        val args = cValuesOf(*argVals)
-        return LLVMBuildCall2(builder, fnTy, fn, args, argVals.size.toUInt(), "call")!!
+        val args = node.args.map { it.accept(this) }.toCValues()
+        val name = if (LLVMGetReturnType(fn.type)!!.isVoid) "" else "call"
+        return LLVMBuildCall2(builder, fn.type, fn.value, args, node.args.size.toUInt(), name)!!
     }
 
-    override fun visit(node: Index): LLVMValueRef? {
-        // Handle array indexing: target[index]
-        val targetIdent = node.target as? Ident ?: return null
-        val arrayAlloca = findAlloca(targetIdent.name)
-        val indexVal = node.index.accept(this) ?: return null
-
-        // Get pointer to array element using GEP
-        val arrayType = LLVMGetElementType(LLVMTypeOf(arrayAlloca))
-        val zero = LLVMConstInt(LLVMInt32TypeInContext(context), 0u, 0)
-        val indices = cValuesOf(zero, indexVal)
-
-        val elementPtr = LLVMBuildGEP2(
-            builder,
-            arrayType,
-            arrayAlloca,
-            indices,
-            2u,
-            "arrayptr"
-        )
-
-        // Load the value at the computed address
-        val elementType = LLVMGetElementType(arrayType)
-        return LLVMBuildLoad2(builder, elementType, elementPtr, "arrayelem")
+    override fun visit(node: Index): LLVMValueRef {
+        val symbol = getLValuePtr(node)
+        return load(symbol.value, symbol.type, name = "index").also {
+            println("DONE")
+        }
     }
 
-    private fun getMemberPtr(node: Member): Pair<LLVMValueRef, LLVMTypeRef>? {
-        // Recursively resolve the target to get the struct pointer
-        val (structPtr, structType) = when (val target = node.target) {
-            is Ident -> {
-                val alloca = findAlloca(target.name)
-                val ty = LLVMGetElementType(LLVMTypeOf(alloca))
-                Pair(alloca, ty)
-            }
+    private fun getLValuePtr(expr: Expr): Symbol = when (expr) {
+        is Ident -> findSymbol(expr.name)
 
-            is Member -> {
-                getMemberPtr(target) ?: return null
-            }
+        is Index -> {
+            println("HEY")
+            val (arrPtr, arrType) = getLValuePtr(expr.target)
+            val idxVal = expr.index.accept(this)!!
+            require(idxVal.type == i32Type) { "Index is not i32 type" }
 
-            else -> return null
+            when {
+                arrType.isArray -> {
+                    val gep = buildInBoundsGEP(arrPtr, arrType, indices = listOf(zero, idxVal), name = "idx")
+                    Symbol(gep, arrType.elementType)
+                }
+
+                arrType.isPointer -> {
+                    val gep = buildInBoundsGEP(arrPtr, arrType, indices = listOf(idxVal), name = "idx")
+                    Symbol(gep, arrType.elementType)
+                }
+
+                else -> error("Can't get element of non-array type.")
+            }
         }
 
-        // Find the struct type name
-        val structTypeName = LLVMGetStructName(structType)?.toKString() ?: return null
-        val fields = getStructFields(structTypeName) ?: return null
-        val fieldIndex = fields.indexOfFirst { it.name == node.name }
-        if (fieldIndex == -1) return null
+        is Unary -> when (expr.op) {
+            UnaryOp.Deref -> {
+                val ptrVal = expr.expr.accept(this)!!
+                require(ptrVal.type.isPointer) { "Attempt to dereference non-pointer type" }
+                Symbol(ptrVal, i32Type)
+            }
 
-        // Build GEP to access the field
-        val indices = cValuesOf(zero, constI32(fieldIndex.toULong()))
-        val fieldPtr = LLVMBuildGEP2(builder, structType, structPtr, indices, 2u, "field_ptr")
+            else -> error("Expression is not an lvalue: ${expr.prettyPrint()}")
+        }
 
-        // Get the field type
-        val fieldType = LLVMStructGetTypeAtIndex(structType, fieldIndex.toUInt())
-        return Pair(fieldPtr!!, fieldType!!)
+//            is Member -> {
+//                // Resolve base pointer and value type in memory
+//                var (basePtr, baseValTy) = getLValuePtr(expr.target)
+//
+//                // Support pointer-to-struct variables: load to get the struct pointer
+//                if (baseValTy.isPointer) {
+//                    val loadedPtr = LLVMBuildLoad2(builder, baseValTy, basePtr, "ld.sptr")!!
+//                    basePtr = loadedPtr
+//                    baseValTy = LLVMGetElementType(baseValTy)!!
+//                }
+//
+//                // Expect a struct value in memory at basePtr
+//                val structNamePtr = LLVMGetStructName(baseValTy)
+//                require(structNamePtr != null) { "Member access base is not a struct" }
+//                val structName = structNamePtr.toKString()
+//                val fields = getStructFields(structName)
+//                val fieldIndex = fields.indexOfFirst { it.name == expr.name }
+//                require(fieldIndex != -1) { "Unknown field ${expr.name} in struct $structName" }
+//
+//                val indices = cValuesOf(zero, constI32(fieldIndex.toULong()))
+//                val fieldPtr = LLVMBuildInBoundsGEP2(builder, baseValTy, basePtr, indices, 2u, "field_ptr")
+//                val fieldTy = LLVMStructGetTypeAtIndex(baseValTy, fieldIndex.toUInt())
+//                Pair(fieldPtr!!, fieldTy!!)
+//            }
+
+        else -> error("Unknown lvalue expression: ${expr.prettyPrint()}")
     }
 
     override fun visit(node: Member): LLVMValueRef? {
-        val (fieldPtr, fieldType) = getMemberPtr(node) ?: return null
+        val (fieldPtr, fieldType) = getLValuePtr(node)
         // Load the field value
         return LLVMBuildLoad2(builder, fieldType, fieldPtr, "field")
     }
 
-    override fun visit(node: Assign): LLVMValueRef? {
-        val v = node.value.accept(this)
-
-        when (val target = node.target) {
-            is Ident -> {
-                // Simple variable assignment
-                val alloca = findAlloca(target.name)
-                LLVMBuildStore(builder, v, alloca)
-            }
-
-            is Index -> {
-                // Array element assignment: arr[idx] = value
-                val targetIdent = target.target as? Ident ?: error("Expected Ident in Index target")
-                val arrayAlloca = findAlloca(targetIdent.name)
-                val indexVal = target.index.accept(this)
-
-                // Get pointer to array element using GEP
-                val arrayType = LLVMGetElementType(LLVMTypeOf(arrayAlloca))
-                val zero = LLVMConstInt(LLVMInt32TypeInContext(context), 0u, 0)
-                val indices = cValuesOf(zero, indexVal)
-
-                val elementPtr = LLVMBuildGEP2(
-                    builder,
-                    arrayType,
-                    arrayAlloca,
-                    indices,
-                    2u,
-                    "arrayptr"
-                )
-
-                LLVMBuildStore(builder, v, elementPtr)
-            }
-
-            is Member -> {
-                // Struct field assignment: obj.field = value
-                val (fieldPtr, _) = getMemberPtr(target) ?: error("Cannot resolve member")
-                LLVMBuildStore(builder, v, fieldPtr)
-            }
-
-            else -> error("Unsupported assignment target")
+    override fun visit(node: Assign): LLVMValueRef {
+        val (lValue, lType) = getLValuePtr(node.target)
+        val rValue = node.value.accept(this)!!
+        require(rValue.type.kind == lType.kind) {
+            println(lType.kind == LLVMHalfTypeKind)
+            "LHS and RHS types don't match ${node.target.prettyPrint()} (${rValue.type.kind} vs ${lType.kind})"
         }
-        return v
+        LLVMBuildStore(builder, rValue, lValue)
+        return rValue
     }
 
     override fun visit(node: BlockExpr) = withScope {
@@ -450,17 +404,17 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         // then
         LLVMPositionBuilderAtEnd(builder, thenBB)
         val thenVal = node.thenBlock.accept(this)
-        if (LLVMGetBasicBlockTerminator(thenBB) == null) LLVMBuildBr(builder, contBB)
+        if (thenBB.terminator == null) LLVMBuildBr(builder, contBB)
 
         // else
         LLVMPositionBuilderAtEnd(builder, elseBB)
         val elseVal = node.elseBlock.accept(this)
-        if (LLVMGetBasicBlockTerminator(elseBB) == null) LLVMBuildBr(builder, contBB)
+        if (elseBB.terminator == null) LLVMBuildBr(builder, contBB)
 
         LLVMPositionBuilderAtEnd(builder, contBB)
 
         // If both produce a value and types match, create phi
-        if (thenVal != null && elseVal != null && LLVMTypeOf(thenVal) == LLVMTypeOf(elseVal)) {
+        if (thenVal != null && elseVal != null && thenVal.type == LLVMTypeOf(elseVal)) {
             val phi = LLVMBuildPhi(builder, LLVMTypeOf(thenVal), "if")
             val incomingVals = cValuesOf(thenVal, elseVal)
             val incomingBBs = cValuesOf(thenBB, elseBB)
@@ -483,7 +437,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         LLVMBuildCondBr(builder, condVal, bodyBB, contBB)
         LLVMPositionBuilderAtEnd(builder, bodyBB)
         node.body.accept(this)
-        if (LLVMGetBasicBlockTerminator(bodyBB) == null) {
+        if (bodyBB.terminator == null) {
             LLVMBuildBr(builder, condBB)
         }
         LLVMPositionBuilderAtEnd(builder, contBB)
@@ -497,7 +451,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         LLVMBuildBr(builder, bodyBB)
         LLVMPositionBuilderAtEnd(builder, bodyBB)
         node.body.accept(this)
-        if (LLVMGetBasicBlockTerminator(bodyBB) == null) LLVMBuildBr(builder, condBB)
+        if (bodyBB.terminator == null) LLVMBuildBr(builder, condBB)
         LLVMPositionBuilderAtEnd(builder, condBB)
         val condVal = node.cond.accept(this)
         LLVMBuildCondBr(builder, condVal, bodyBB, contBB)
@@ -520,10 +474,10 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         LLVMBuildCondBr(builder, condVal, bodyBB, contBB)
         LLVMPositionBuilderAtEnd(builder, bodyBB)
         node.body.accept(this)
-        if (LLVMGetBasicBlockTerminator(bodyBB) == null) LLVMBuildBr(builder, incrBB)
+        if (bodyBB.terminator == null) LLVMBuildBr(builder, incrBB)
         LLVMPositionBuilderAtEnd(builder, incrBB)
         node.incr.accept(this)
-        if (LLVMGetBasicBlockTerminator(incrBB) == null) LLVMBuildBr(builder, condBB)
+        if (incrBB.terminator == null) LLVMBuildBr(builder, condBB)
         LLVMPositionBuilderAtEnd(builder, contBB)
         return null
     }
@@ -537,17 +491,17 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         val resultVals = mutableListOf<LLVMValueRef?>()
         node.cases.forEach { c ->
             val bb = addBasicBlock("case")
-            LLVMAddCase(sw, LLVMConstInt(LLVMTypeOf(scrutinee), c.value.toULong(), 0), bb)
+            LLVMAddCase(sw, LLVMConstInt(scrutinee.type, c.value.toULong(), 0), bb)
             LLVMPositionBuilderAtEnd(builder, bb)
             resultVals += c.result.accept(this)
             caseVals += LLVMGetInsertBlock(builder)
-            if (LLVMGetBasicBlockTerminator(bb) == null) LLVMBuildBr(builder, contBB)
+            if (bb.terminator == null) LLVMBuildBr(builder, contBB)
         }
         // default
         LLVMPositionBuilderAtEnd(builder, defaultBB)
 
         val defaultVal = node.defaultCase?.accept(this)
-        if (LLVMGetBasicBlockTerminator(defaultBB) == null) LLVMBuildBr(builder, contBB)
+        if (defaultBB.terminator == null) LLVMBuildBr(builder, contBB)
 
         LLVMPositionBuilderAtEnd(builder, contBB)
         // If all cases yield the same type, create phi
@@ -564,7 +518,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
             incomingBBs += defaultBB
         }
         if (incomingVals.isNotEmpty()) {
-            val phiTy = LLVMTypeOf(incomingVals.first())
+            val phiTy = incomingVals.first().type
             val phi = LLVMBuildPhi(builder, phiTy, "swt")
             val vals = incomingVals.toTypedArray()
             val bbs = incomingBBs.toTypedArray()
@@ -578,23 +532,42 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Cast) = null
 
+    private fun buildIncDec(target: Expr, isIncrement: Boolean, isPrefix: Boolean): LLVMValueRef {
+        val (ptr, type) = getLValuePtr(target)
+        val isFloat = type.isFloatLike
+        val cur = load(value = ptr, type, name = "tmp")
+        val one = if (isFloat) 1.0.toLLVM() else 1.i32()
+        val newVal = if (isIncrement) {
+            when (isFloat) {
+                true -> LLVMBuildFAdd(builder, cur, one, "inc")
+                else -> LLVMBuildAdd(builder, cur, one, "inc")
+            }
+        } else {
+            when (isFloat) {
+                true -> LLVMBuildFSub(builder, cur, one, "dec")
+                else -> LLVMBuildSub(builder, cur, one, "dec")
+            }
+        }
+        LLVMBuildStore(builder, newVal, ptr)
+        return if (isPrefix) newVal!! else cur
+    }
+
     override fun visit(node: PostfixInc): LLVMValueRef {
-        val alloca = findAlloca(node.target.name)
-        val ty = LLVMGetElementType(LLVMTypeOf(alloca))
-        val cur = LLVMBuildLoad2(builder, ty, alloca, "tmp")
-        val one = LLVMConstInt(ty, 1u, 0)
-        val inc = LLVMBuildAdd(builder, cur, one, "inc")
-        LLVMBuildStore(builder, inc, alloca)
-        return cur!!
+        return buildIncDec(node.target, isIncrement = true, isPrefix = false)
     }
 
     override fun visit(node: PostfixDec): LLVMValueRef {
-        val alloca = findAlloca(node.target.name)
-        val ty = LLVMGetElementType(LLVMTypeOf(alloca))
-        val cur = LLVMBuildLoad2(builder, ty, alloca, "tmp")
-        val one = LLVMConstInt(ty, 1u, 0)
-        val dec = LLVMBuildSub(builder, cur, one, "dec")
-        LLVMBuildStore(builder, dec, alloca)
-        return cur!!
+        return buildIncDec(node.target, isIncrement = false, isPrefix = false)
+    }
+
+    companion object {
+        fun generate(ast: Program): String = with(Codegen()) {
+            visit(ast)
+            val cstr = LLVMPrintModuleToString(module)
+            val ir = cstr?.toKString() ?: error("Failed to compile LLVM IR")
+            LLVMDisposeMessage(cstr)
+            return ir
+        }
     }
 }
+
