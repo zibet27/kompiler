@@ -5,35 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/10_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/10_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/11_function_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/11_function_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/12_casting.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/12_casting.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/13_void_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/13_void_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/14_complex_expression.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/14_complex_expression.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/15_nested_blocks.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/15_nested_blocks.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/1_hello_world.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/1_hello_world.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/2_variables.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/2_variables.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/3_arithmetic.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/3_arithmetic.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/4_logical.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/4_logical.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/5_functions.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/5_functions.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/6_if_else.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/6_if_else.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/7_loops.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/7_loops.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/8_switch_case.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/8_switch_case.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/9_structs.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/9_structs.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeInterop/cinterop/llvm.def" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeInterop/cinterop/llvm.def" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/AstVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/AstVisitor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/TypeChecker.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/CodegenContext.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/CodegenContext.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesTypecheckTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesTypecheckTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -437,7 +411,7 @@
       <workItem from="1764236618967" duration="25585000" />
       <workItem from="1764797046853" duration="10436000" />
       <workItem from="1764850598495" duration="394000" />
-      <workItem from="1764851651372" duration="5524000" />
+      <workItem from="1764851651372" duration="6716000" />
     </task>
     <servers />
   </component>
