@@ -9,7 +9,7 @@ import parser.KodeParser
 import platform.posix.system
 
 fun main(args: Array<String>) {
-    val path = args.firstOrNull() ?: "examples/2_variables.kode"
+    val path = args.firstOrNull() ?: "examples/9_structs.kode"
     val source: String = SystemFileSystem.source(Path(path)).buffered().readString()
     val runExecutable = args.contains("--run")
 

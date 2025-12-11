@@ -37,4 +37,4 @@ fun main{}: i32 (
     0;
 );
 
-// EXPECTED OUTPUT: 20 20
+// EXPECTED OUTPUT: 20 44 20

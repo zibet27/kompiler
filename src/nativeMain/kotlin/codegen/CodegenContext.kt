@@ -32,6 +32,9 @@ open class CodegenContext : AutoCloseable {
 
     protected val scopes = ArrayDeque<MutableMap<String, Symbol>>()
     var currentFunction: LLVMValueRef? = null
+    // Loop control flow targets for break/continue
+    var loopIncrementBlock: LLVMBasicBlockRef? = null
+    var loopExitBlock: LLVMBasicBlockRef? = null
 
     // --- Scope Management ---
     protected inline fun <R> withScope(crossinline block: () -> R): R {
@@ -88,9 +91,12 @@ open class CodegenContext : AutoCloseable {
     // --- Type Helpers ---
 
     protected val voidType = context.voidType()
+    protected val boolType = context.i1Type()
     protected val i32Type = context.i32Type()
     protected val f32Type = context.f32Type()
     protected val f64Type = context.f64Type()
+
+    protected val nothingType = context.halfType()
     protected val arrayKind = i32Type.arrayType(1u).kind
     protected val pointerKind = i32Type.pointerType(DEFAULT_RAM_SPACE).kind
 
@@ -109,7 +115,7 @@ open class CodegenContext : AutoCloseable {
     // --- Constant Helpers ---
     fun Int.i32(): LLVMValueRef = i32Type.constInt(this.toULong())
 
-    fun Double.toLLVM(): LLVMValueRef = f64Type.constReal(this)
+    fun Double.f64(): LLVMValueRef = f64Type.constReal(this)
 
     val zero = 0.i32()
 

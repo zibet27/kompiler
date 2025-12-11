@@ -36,15 +36,16 @@ fun LLVMModuleRef.printToString(): String {
 
 fun LLVMContextRef.voidType(): LLVMTypeRef = LLVMVoidTypeInContext(this)!!
 
-fun LLVMContextRef.i1Type(): LLVMTypeRef = LLVMInt1TypeInContext(this)!!
-
 fun LLVMContextRef.i8Type(): LLVMTypeRef = LLVMInt8TypeInContext(this)!!
 
+fun LLVMContextRef.i1Type(): LLVMTypeRef = LLVMInt1TypeInContext(this)!!
 fun LLVMContextRef.i32Type(): LLVMTypeRef = LLVMInt32TypeInContext(this)!!
 
 fun LLVMContextRef.f32Type(): LLVMTypeRef = LLVMFloatTypeInContext(this)!!
 
 fun LLVMContextRef.f64Type(): LLVMTypeRef = LLVMDoubleTypeInContext(this)!!
+
+fun LLVMContextRef.halfType(): LLVMTypeRef = LLVMHalfTypeInContext(this)!!
 
 fun LLVMTypeRef.pointerType(addressSpace: UInt = 0u): LLVMTypeRef =
     LLVMPointerType(ElementType = this, AddressSpace = addressSpace)!!
@@ -76,8 +77,8 @@ fun LLVMTypeRef.setBody(fieldTypes: List<LLVMTypeRef>, packed: Boolean = false) 
         Packed = if (packed) 1 else 0
     )
 
-fun LLVMTypeRef.getFieldTypeAt(index: UInt): LLVMTypeRef =
-    LLVMStructGetTypeAtIndex(this, index)!!
+fun LLVMTypeRef.getFieldTypeAt(index: Int): LLVMTypeRef =
+    LLVMStructGetTypeAtIndex(this, index.toUInt())!!
 
 val LLVMTypeRef.structName: String?
     get() = LLVMGetStructName(this)?.toKString()
@@ -91,7 +92,10 @@ val LLVMTypeRef.kind: LLVMTypeKind
     get() = LLVMGetTypeKind(Ty = this)
 
 val LLVMTypeRef.elementType: LLVMTypeRef
-    get() = LLVMGetElementType(Ty = this)!!
+    get() {
+        require(kind != LLVMPointerTypeKind)
+        return LLVMGetElementType(Ty = this)!!
+    }
 
 val LLVMTypeRef.returnType: LLVMTypeRef
     get() = LLVMGetReturnType(this)!!
@@ -153,8 +157,8 @@ val LLVMBasicBlockRef.firstInstruction: LLVMValueRef?
 val LLVMBasicBlockRef.terminator: LLVMValueRef?
     get() = LLVMGetBasicBlockTerminator(BB = this)
 
-val LLVMBuilderRef.insertBlock: LLVMBasicBlockRef
-    get() = LLVMGetInsertBlock(this)!!
+val LLVMBuilderRef.insertBlock: LLVMBasicBlockRef?
+    get() = LLVMGetInsertBlock(this)
 
 // ===== Builder Positioning =====
 
@@ -252,6 +256,44 @@ fun LLVMBuilderRef.buildShl(lhs: LLVMValueRef, rhs: LLVMValueRef, name: String =
 
 fun LLVMBuilderRef.buildAShr(lhs: LLVMValueRef, rhs: LLVMValueRef, name: String = "shr"): LLVMValueRef =
     LLVMBuildAShr(this, lhs, rhs, name)!!
+
+// ===== Comparison Operations =====
+
+fun LLVMBuilderRef.buildICmp(
+    predicate: LLVMIntPredicate,
+    lhs: LLVMValueRef,
+    rhs: LLVMValueRef,
+    name: String = "icmp"
+): LLVMValueRef = LLVMBuildICmp(this, predicate, lhs, rhs, name)!!
+
+fun LLVMBuilderRef.buildFCmp(
+    predicate: LLVMRealPredicate,
+    lhs: LLVMValueRef,
+    rhs: LLVMValueRef,
+    name: String = "fcmp"
+): LLVMValueRef = LLVMBuildFCmp(this, predicate, lhs, rhs, name)!!
+
+val LLVMIntEQ: LLVMIntPredicate
+    get() = 32u
+
+val LLVMIntNE: LLVMIntPredicate
+    get() = 33u
+
+
+val LLVMIntSGT: LLVMIntPredicate = 38u
+val LLVMIntSGE: LLVMIntPredicate = 39u
+
+val LLVMIntSLT: LLVMIntPredicate = 40u
+
+val LLVMIntSLE: LLVMIntPredicate = 41u
+
+// ===== Cast Operations =====
+
+fun LLVMBuilderRef.buildZExt(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "z_ext"
+): LLVMValueRef = LLVMBuildZExt(this, value, destType, name)!!
 
 // ===== Control Flow =====
 

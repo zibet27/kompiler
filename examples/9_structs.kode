@@ -26,14 +26,14 @@ fun print_rectangle{ rect: Rectangle }: void (
 );
 
 fun main{}: i32 (
-    Point p;
-    p.x = 10;
+    Point p = Point { x: 10, y: 0 };
     p.y = 20;
     print_point{ p };
 
-    Rectangle rect;
-    rect.top_left.x = 0;
-    rect.top_left.y = 0;
+    Rectangle rect = Rectangle {
+        top_left: Point { 0, 0 },
+        bottom_right: Point { 0, 0 }
+    );
     rect.bottom_right.x = 100;
     rect.bottom_right.y = 100;
     print_rectangle{ rect };
