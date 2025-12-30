@@ -31,9 +31,9 @@ fun main{}: i32 (
     print_point{ p };
 
     Rectangle rect = Rectangle {
-        top_left: Point { 0, 0 },
-        bottom_right: Point { 0, 0 }
-    );
+        top_left: Point { x: 0, y: 0 },
+        bottom_right: Point { x: 0, y: 0 }
+    };
     rect.bottom_right.x = 100;
     rect.bottom_right.y = 100;
     print_rectangle{ rect };

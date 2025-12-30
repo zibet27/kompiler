@@ -26,7 +26,7 @@ fun main{}: i32 (
     print_int{ b };  // 7
 
     // Pointers to structs
-    Point pt;
+    Point pt = Point { x: 0, y: 0 };
     Point ptr p_pt = &pt;
 
     // Arrow operator for struct pointer access
@@ -35,9 +35,10 @@ fun main{}: i32 (
 
     // Pointer to pointer
     i32 ptr ptr pp_int = &p_int;
-    print_int{ **pp_int };  // 10
+    print_int{ **pp_int };  // 7
     **pp_int = 15;  // Change value through pointer to pointer
-    print_int{ a };  // 15
+    print_int{ a };  // 10
+    print_int{ b };  // 15
 
     0;
 );

@@ -5,6 +5,7 @@ package codegen
 import ast.*
 import kotlinx.cinterop.ExperimentalForeignApi
 import llvm.*
+import type.KodeType
 
 internal inline fun <T, R> Iterable<T>.forEachRetLast(crossinline block: (T) -> R): R? {
     var result: R? = null
@@ -16,7 +17,7 @@ internal inline fun <T, R> Iterable<T>.forEachRetLast(crossinline block: (T) -> 
 
 private const val DEFAULT_RAM_SPACE = 0u
 
-data class Symbol(val value: LLVMValueRef, val type: LLVMTypeRef)
+data class Symbol(val value: LLVMValueRef, val type: KodeType)
 
 open class CodegenContext : AutoCloseable {
 
@@ -27,11 +28,12 @@ open class CodegenContext : AutoCloseable {
     // Environments
     protected val functions = mutableMapOf<String, Symbol>()
     protected val globals = mutableMapOf<String, Symbol>()
-    protected val structs = mutableMapOf<String, LLVMTypeRef?>()
+    protected val structs = mutableMapOf<String, LLVMTypeRef>()
     private val structFields = mutableMapOf<String, List<FieldDecl>>()
 
     protected val scopes = ArrayDeque<MutableMap<String, Symbol>>()
     var currentFunction: LLVMValueRef? = null
+
     // Loop control flow targets for break/continue
     var loopIncrementBlock: LLVMBasicBlockRef? = null
     var loopExitBlock: LLVMBasicBlockRef? = null
@@ -47,8 +49,8 @@ open class CodegenContext : AutoCloseable {
     protected fun pushScope() = scopes.addLast(mutableMapOf())
     protected fun popScope() = scopes.removeLastOrNull()
 
-    protected fun putLocal(name: String, alloca: LLVMValueRef?, type: LLVMTypeRef?) {
-        scopes.lastOrNull()?.set(name, Symbol(alloca!!, type!!))
+    protected fun putLocal(name: String, alloca: LLVMValueRef?, type: KodeType) {
+        scopes.lastOrNull()?.set(name, Symbol(alloca!!, type))
     }
 
     protected fun getLocal(name: String): Symbol? {
@@ -69,7 +71,7 @@ open class CodegenContext : AutoCloseable {
     }
 
     // --- LLVM Helpers ---
-    fun buildAlloca(name: String, type: LLVMTypeRef): LLVMValueRef = withBuilder {
+    fun buildAlloca(name: String, llvmType: LLVMTypeRef): LLVMValueRef = withBuilder {
         val entry = currentFunction!!.entryBasicBlock
         val first = entry.firstInstruction
         if (first != null) {
@@ -77,7 +79,7 @@ open class CodegenContext : AutoCloseable {
         } else {
             positionAtEnd(entry)
         }
-        buildAlloca(type, name)
+        buildAlloca(llvmType, name)
     }
 
     fun addBasicBlock(name: String): LLVMBasicBlockRef {
@@ -93,11 +95,9 @@ open class CodegenContext : AutoCloseable {
     protected val voidType = context.voidType()
     protected val boolType = context.i1Type()
     protected val i32Type = context.i32Type()
+    protected val i8Type = context.i8Type()
     protected val f32Type = context.f32Type()
     protected val f64Type = context.f64Type()
-
-    protected val nothingType = context.halfType()
-    protected val arrayKind = i32Type.arrayType(1u).kind
     protected val pointerKind = i32Type.pointerType(DEFAULT_RAM_SPACE).kind
 
     val LLVMTypeRef.isVoid: Boolean
@@ -105,9 +105,6 @@ open class CodegenContext : AutoCloseable {
 
     val LLVMTypeRef.isPointer: Boolean
         get() = kind == pointerKind
-
-    val LLVMTypeRef.isArray: Boolean
-        get() = kind == arrayKind
 
     val LLVMTypeRef.isFloatLike: Boolean
         get() = kind == f32Type.kind || kind == f64Type.kind
@@ -120,13 +117,12 @@ open class CodegenContext : AutoCloseable {
     val zero = 0.i32()
 
     // --- Function Management ---
-    fun ensureFunction(name: String, params: List<Param>, type: TypeRef, alien: Boolean) {
-        val existing = functions[name]
-        if (existing != null) {
+    fun ensureFunction(name: String, params: List<Param>, kodeType: KodeType.Fn, alien: Boolean) {
+        if (functions.contains(name)) {
             return
         }
-        val fnType = type.toLLVM()
-        val fn = module.addFunction(name, fnType)
+        val llvmFnType = kodeType.toLLVMSignature()
+        val fn = module.addFunction(name, llvmFnType)
         if (alien) {
             fn.linkage = LLVMLinkage.LLVMExternalWeakLinkage
         }
@@ -134,7 +130,7 @@ open class CodegenContext : AutoCloseable {
             val arg = fn.getParam(idx.toUInt())
             arg.valueName = param.name
         }
-        functions[name] = Symbol(value = fn, fnType)
+        functions[name] = Symbol(value = fn, kodeType)
     }
 
     // --- Struct Management ---
@@ -148,38 +144,41 @@ open class CodegenContext : AutoCloseable {
     }
 
     // --- Global Management ---
-    fun addGlobal(name: String, type: LLVMTypeRef) {
-        val value = module.addGlobal(type, name)
-        globals[name] = Symbol(value, type)
+    fun addGlobal(name: String, kodeType: KodeType) {
+        val value = module.addGlobal(kodeType.toLLVM(), name)
+        globals[name] = Symbol(value, kodeType)
     }
 
     // --- Array Type Helper ---
-    fun LLVMTypeRef.withDimensions(arrayDims: List<IntLit>): LLVMTypeRef {
-        if (arrayDims.isEmpty()) return this
-        return arrayDims.reversed().fold(this) { ty, dimExpr ->
-            ty.arrayType(dimExpr.value.toUInt())
+    fun LLVMTypeRef.withDimensions(dimensions: List<Int>): LLVMTypeRef {
+        return dimensions.reversed().fold(this) { ty, dim ->
+            ty.arrayType(elementCount = dim.toUInt())
         }
     }
 
-    fun TypeRef.toLLVM(): LLVMTypeRef = when (this) {
-        is BuiltinType -> when (kind) {
-            BuiltinType.Kind.I32 -> i32Type
-            BuiltinType.Kind.U8 -> context.i8Type()
-            BuiltinType.Kind.F64 -> f64Type
-            BuiltinType.Kind.Void -> voidType
+    fun KodeType.toLLVM(): LLVMTypeRef {
+        val result = when (this) {
+            is KodeType.I32 -> i32Type
+            is KodeType.U8 -> i8Type
+            is KodeType.F64 -> f64Type
+            is KodeType.Void -> voidType
+            is KodeType.Unknown -> error("Invalid type")
+            is KodeType.Arr -> base.toLLVM().withDimensions(dimensions)
+            is KodeType.Obj -> getStructType(name) ?: error("Can't find struct $name")
+
+            // function opaque pointer
+            is KodeType.Fn -> i32Type.pointerType(DEFAULT_RAM_SPACE)
+            is KodeType.Ptr -> (0 until levels).fold(initial = base.toLLVM()) { ty, _ ->
+                ty.pointerType(DEFAULT_RAM_SPACE)
+            }
         }
-
-        is PointerType -> (0 until levels).fold(initial = base.toLLVM()) { ty, _ ->
-            ty.pointerType(DEFAULT_RAM_SPACE)
-        }
-
-        is NamedType -> getStructType(name) ?: error("Can't find struct $name")
-
-        is FuncType -> functionType(
-            returnType = returnType.toLLVM(),
-            paramTypes = paramTypes.map { it.toLLVM() }
-        )
+        return result
     }
+
+    fun KodeType.Fn.toLLVMSignature(): LLVMTypeRef = functionType(
+        returnType = ret.toLLVM(),
+        paramTypes = params.map { it.toLLVM() }
+    )
 
     override fun close() {
         builder.dispose()

@@ -1,6 +1,7 @@
 package ast
 
 import lexer.Span
+import type.KodeType
 
 /**
  * Base interface for all AST nodes.
@@ -10,9 +11,7 @@ sealed interface Node {
 }
 
 // Program and top-level declarations
-data class Program(
-    val decls: List<TopDecl>, override val span: Span
-) : Node
+data class Program(val declarations: List<TopDecl>, override val span: Span) : Node
 
 sealed interface TopDecl : Node
 
@@ -22,7 +21,7 @@ data class FunDecl(
     val returnType: TypeRef,
     override val span: Span
 ) : TopDecl {
-    val type = FuncType(paramTypes = params.map { p -> p.type }, returnType, span)
+    var kodeType: KodeType.Fn? = null
 }
 
 data class FunDef(
@@ -32,7 +31,7 @@ data class FunDef(
     val body: Block,
     override val span: Span
 ) : TopDecl {
-    val type = FuncType(paramTypes = params.map { p -> p.type }, returnType, span)
+    var kodeType: KodeType.Fn? = null
 }
 
 data class AlienFunDecl(
@@ -41,18 +40,20 @@ data class AlienFunDecl(
     val returnType: TypeRef,
     override val span: Span
 ) : TopDecl {
-    val type = FuncType(paramTypes = params.map { p -> p.type }, returnType, span)
+    var kodeType: KodeType.Fn? = null
 }
 
-data class ObjectDecl(
-    val name: String, override val span: Span
-) : TopDecl
+data class ObjectDecl(val name: String, override val span: Span) : TopDecl
 
 data class ObjectDef(
     val name: String,
     val fields: List<FieldDecl>,
     override val span: Span
-) : TopDecl
+) : TopDecl {
+    var kodeType: KodeType.Obj? = null
+}
+
+data class FieldDecl(val name: String, val type: TypeRef, override val span: Span) : Node
 
 data class TypeAlias(
     val name: String,
@@ -72,22 +73,19 @@ data class GlobalVarDecl(
     override val span: Span
 ) : TopDecl, VarDecl
 
-data class FieldDecl(
-    val name: String, val type: TypeRef, override val span: Span
-) : Node
-
 data class Param(
     val name: String, val type: TypeRef, override val span: Span
-) : Node
+) : Node {
+    var kodeType: KodeType? = null
+}
 
 data class Declarator(
     val name: String,
-    val arrayDims: List<IntLit>,
     val init: Init,
+    val arrayDims: List<IntLit>,
     override val span: Span
 ) : Node {
-    val totalArraySize: Int
-        get() = arrayDims.fold(1) { acc, dimExpr -> acc * dimExpr.value }
+    var kodeType: KodeType? = null
 }
 
 sealed interface Init : Node
@@ -103,13 +101,9 @@ data class BuiltinType(val kind: Kind, override val span: Span) : TypeRef {
     }
 }
 
-data class NamedType(
-    val name: String, override val span: Span
-) : TypeRef
+data class NamedType(val name: String, override val span: Span) : TypeRef
 
-data class PointerType(
-    val base: TypeRef, val levels: Int, override val span: Span
-) : TypeRef
+data class PointerType(val base: TypeRef, val levels: Int, override val span: Span) : TypeRef
 
 data class FuncType(
     val paramTypes: List<TypeRef>,
@@ -118,9 +112,7 @@ data class FuncType(
 ) : TypeRef
 
 // Block, items and statements
-data class Block(
-    val items: List<Item>, override val span: Span
-) : Node
+data class Block(val items: List<Item>, override val span: Span) : Node
 
 sealed interface Item : Node
 data class LocalVarDecl(
@@ -156,9 +148,14 @@ data class SwitchExpr(val expr: Expr, val cases: List<SwitchCase>, val defaultCa
     Expr
 
 data class SwitchCase(val value: Int, val result: Expr, override val span: Span) : Node
-data class Cast(val ident: String, val type: TypeRef, override val span: Span) : Expr
+data class Cast(val expr: Expr, val toType: TypeRef, override val span: Span) : Expr {
+    var kodeType: KodeType? = null
+}
 data class PostfixInc(val target: Expr, override val span: Span) : Expr
 data class PostfixDec(val target: Expr, override val span: Span) : Expr
+data class StructInit(val typeName: String, val fieldInits: List<FieldInit>, override val span: Span) : Expr
+
+data class FieldInit(val name: String, val value: Expr, override val span: Span) : Node
 
 enum class UnaryOp { Not, BitNot, Plus, Minus, Deref, AddressOf, PreInc, PreDec }
 

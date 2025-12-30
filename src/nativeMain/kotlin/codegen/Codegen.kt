@@ -4,15 +4,19 @@ import ast.*
 import ast.visitor.AstVisitor
 import ast.visitor.accept
 import kotlinx.cinterop.ExperimentalForeignApi
-import llvm.*
+import llvm.LLVMBasicBlockRef
+import llvm.LLVMRealPredicate
+import llvm.LLVMTypeRef
+import llvm.LLVMValueRef
+import type.KodeType
+import type.isFloatLike
 
 @OptIn(ExperimentalForeignApi::class)
 class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Program): LLVMValueRef? {
         // First pass: declare opaque structs
-        println("[Codegen] Pass1: struct declarations (${node.decls.size} decls)")
-        for (it in node.decls) {
+        for (it in node.declarations) {
             when (it) {
                 is ObjectDecl -> {
                     structs[it.name] = context.createNamedStruct(it.name)
@@ -22,7 +26,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
                     val structType = structs[it.name] ?: context.createNamedStruct(it.name)
                     registerStruct(it.name, structType, it.fields)
 
-                    val fieldTypes = it.fields.map { field -> field.type.toLLVM() }
+                    val fieldTypes = it.kodeType!!.fields.map { (_, fieldType) -> fieldType.toLLVM() }
                     structType.setBody(fieldTypes)
                 }
 
@@ -31,17 +35,13 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         }
 
         // Declare prototypes for functions and globals
-        println("[Codegen] Pass2: prototypes and globals")
-        for (it in node.decls) {
+        for (it in node.declarations) {
             when (it) {
-                is FunDecl -> ensureFunction(it.name, it.params, it.type, alien = false)
-                is FunDef -> ensureFunction(it.name, it.params, it.type, alien = false)
-                is AlienFunDecl -> ensureFunction(it.name, it.params, it.type, alien = true)
-                is GlobalVarDecl -> {
-                    val baseType = it.type.toLLVM()
-                    it.declarators.forEach { d ->
-                        addGlobal(d.name, type = baseType.withDimensions(d.arrayDims))
-                    }
+                is FunDecl -> ensureFunction(it.name, it.params, it.kodeType!!, alien = false)
+                is FunDef -> ensureFunction(it.name, it.params, it.kodeType!!, alien = false)
+                is AlienFunDecl -> ensureFunction(it.name, it.params, it.kodeType!!, alien = true)
+                is GlobalVarDecl -> it.declarators.forEach { d ->
+                    addGlobal(d.name, d.kodeType!!)
                 }
 
                 else -> continue
@@ -49,8 +49,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         }
 
         // generate bodies
-        println("[Codegen] Pass3: definitions & bodies")
-        node.decls.forEach { it.accept(this) }
+        node.declarations.forEach { it.accept(this) }
         return null
     }
 
@@ -72,20 +71,18 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
                 params += fn.getParam(idx.toUInt())
             }
 
-            println("[Codegen] generating params")
+            val kodeType = node.kodeType!!
+            val kodeParamTypes = kodeType.params
             node.params.forEachIndexed { i, p ->
-                val allocaType = p.type.toLLVM()
-                val alloca = buildAlloca(p.name, allocaType)
+                val paramType = kodeParamTypes[i]
+                val alloca = buildAlloca(p.name, paramType.toLLVM())
                 builder.buildStore(params[i], alloca)
-                putLocal(p.name, alloca, allocaType)
+                putLocal(p.name, alloca, paramType)
             }
 
-            println("[Codegen] generating body")
             val bodyVal = node.body.accept(this)
 
-            println("[Codegen] generating return")
-
-            if (node.returnType.toLLVM().isVoid) {
+            if (kodeType.ret == KodeType.Void) {
                 builder.buildRetVoid()
             } else {
                 requireNotNull(bodyVal) {
@@ -115,18 +112,18 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     }
 
     override fun visit(node: GlobalVarDecl): LLVMValueRef? {
-        val baseType = node.type.toLLVM()
         node.declarators.forEach { d ->
             val gv = globals[d.name]!!.value
             when (d.init) {
                 is WithInit -> {
-                    require(!d.arrayDims.isEmpty()) {
+                    val kodeType = d.kodeType!!
+                    require(kodeType is KodeType.Arr) {
                         "Incorrect `with` keyword usage"
                     }
                     val initVal = d.init.expr.accept(this)!!
-                    val totalSize = d.totalArraySize
+                    val totalSize = d.arrayDims.fold(1) { acc, dim -> dim.value * acc }
                     val elements = List(totalSize) { initVal }
-                    val constArray = baseType.constArray(elements)
+                    val constArray = kodeType.base.toLLVM().constArray(elements)
                     gv.initializer = constArray
                 }
 
@@ -165,20 +162,20 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     }
 
     override fun visit(node: LocalVarDecl): LLVMValueRef? {
-        val baseType = node.type.toLLVM()
         node.declarators.forEach { d ->
-            val allocaType = baseType.withDimensions(d.arrayDims)
-            val alloca = buildAlloca(d.name, allocaType)
-            putLocal(d.name, alloca, allocaType)
+            val kodeType = d.kodeType!!
+            val llvmType = kodeType.toLLVM()
+            val alloca = buildAlloca(d.name, llvmType)
+            putLocal(d.name, alloca, kodeType)
 
             when (d.init) {
                 is WithInit -> {
-                    require(!d.arrayDims.isEmpty())
+                    require(kodeType is KodeType.Arr)
 
                     val initVal = d.init.expr.accept(this)!!
-                    for (i in 0 until d.totalArraySize) {
+                    for (i in 0 until kodeType.totalSize()) {
                         val indices = listOf(zero, i.i32())
-                        val elemPtr = builder.buildInBoundsGEP(allocaType, alloca, indices, name = "int_ptr")
+                        val elemPtr = builder.buildInBoundsGEP(llvmType, alloca, indices, name = "int_ptr")
                         builder.buildStore(initVal, elemPtr)
                     }
                 }
@@ -224,9 +221,9 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Ident): LLVMValueRef {
         // Variable or function
-        val variable = getLocal(node.name) ?: globals[node.name]
-        if (variable != null) {
-            return load(variable.value, variable.type, node.name)
+        val symbol = getLocal(node.name) ?: globals[node.name]
+        if (symbol != null) {
+            return load(symbol.value, symbol.type.toLLVM(), node.name)
         }
         return functions[node.name]!!.value
     }
@@ -254,12 +251,12 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
                 } else {
                     builder.buildICmp(LLVMIntEQ, lhs = v, rhs = zeroVal, name = "not")
                 }
-                builder.buildZExt(cond, boolType)
+                builder.buildZExt(cond, i32Type)
             }
 
             UnaryOp.Deref -> {
-                val value = node.expr.accept(this)!!
-                load(value, value.type, name = "deref")
+                val symbol = node.toLValue()
+                load(symbol.value, symbol.type.toLLVM(), name = "deref")
             }
         }
     }
@@ -308,11 +305,19 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         }
     }
 
-    private fun getZero(type: LLVMTypeRef) =
-        when {
-            type.isFloatLike -> type.constReal(0.0)
-            else -> type.constInt(0u)
+    private fun getZero(type: LLVMTypeRef) = when {
+        type.isFloatLike -> type.constReal(0.0)
+        else -> type.constInt(0u)
+    }
+
+    private fun LLVMValueRef.toBool(): LLVMValueRef {
+        if (type == boolType) return this
+        return if (type.isFloatLike) {
+            builder.buildFCmp(LLVMRealPredicate.LLVMRealONE, lhs = this, rhs = getZero(this.type), name = "to_bool")
+        } else {
+            builder.buildICmp(LLVMIntNE, lhs = this, rhs = getZero(this.type), name = "to_bool")
         }
+    }
 
     private fun buildCmp(node: Binary, lv: LLVMValueRef, rv: LLVMValueRef, isFloat: Boolean): LLVMValueRef {
         val cmp = if (isFloat) {
@@ -338,16 +343,12 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
             }
             builder.buildICmp(pred, lv, rv)
         }
-        return builder.buildZExt(cmp, boolType)
+        return builder.buildZExt(cmp, i32Type)
     }
 
     private fun visitLogical(node: Binary): LLVMValueRef {
         val lv = node.left.accept(this)!!
-        val lhsBool = if (lv.type.isFloatLike) {
-            builder.buildFCmp(LLVMRealPredicate.LLVMRealONE, lhs = lv, rhs = getZero(lv.type), name = "to_bool")
-        } else {
-            builder.buildICmp(LLVMIntNE, lhs = lv, rhs = getZero(lv.type), name = "to_bool")
-        }
+        val lhsBool = lv.toBool()
 
         val lhsBlock = builder.insertBlock!!
         val rhsBlock = addBasicBlock("logic.rhs")
@@ -361,12 +362,8 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
         builder.positionAtEnd(rhsBlock)
         val rv = node.right.accept(this)!!
-        val rhsBool = if (rv.type.isFloatLike) {
-            builder.buildFCmp(LLVMRealPredicate.LLVMRealONE, rv, getZero(rv.type), "to_bool")
-        } else {
-            builder.buildICmp(LLVMIntNE, rv, getZero(rv.type), "to_bool")
-        }
-        val rhsRes = builder.buildZExt(rhsBool, boolType)
+        val rhsBool = rv.toBool()
+        val rhsRes = builder.buildZExt(rhsBool, i32Type)
         val rhsEndBlock = builder.insertBlock!!
         builder.buildBr(mergeBlock)
 
@@ -381,34 +378,43 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
     }
 
     override fun visit(node: Call): LLVMValueRef {
-        val fn = functions[node.callee.name]!!
+        val calleeValue = node.callee.accept(this)!!
+        val symbol = functions[node.callee.name] ?: findSymbol(node.callee.name)
+        val kodeType = symbol.type as KodeType.Fn
         val args = node.args.map { it.accept(this)!! }
-        val name = if (fn.type.returnType.isVoid) "" else "call"
-        return builder.buildCall(fn.type, fn.value, args, name)
+        val name = if (kodeType.ret is KodeType.Void) "" else "call"
+        return builder.buildCall(kodeType.toLLVMSignature(), calleeValue, args, name)
     }
 
     override fun visit(node: Index): LLVMValueRef {
         val symbol = node.toLValue()
-        return load(symbol.value, symbol.type, name = "index")
+        return load(symbol.value, symbol.type.toLLVM(), name = "index")
     }
 
     private fun Expr.toLValue(): Symbol = when (this) {
         is Ident -> findSymbol(name)
 
         is Index -> {
-            val (arrPtr, arrType) = target.toLValue()
+            val symbol = target.toLValue()
+            val arrPtr = symbol.value
+
             val idxVal = index.accept(this@Codegen)!!
             require(idxVal.type == i32Type) { "Index is not i32 type" }
 
-            when {
-                arrType.isArray -> {
-                    val gep = builder.buildInBoundsGEP(arrType, arrPtr, indices = listOf(zero, idxVal), name = "idx")
-                    Symbol(gep, arrType.elementType)
+            when (symbol.type) {
+                is KodeType.Arr -> {
+                    val elementType = symbol.type.indexed()
+                    val arrayType = symbol.type.toLLVM()
+                    val gep = builder.buildInBoundsGEP(arrayType, arrPtr, indices = listOf(zero, idxVal), name = "idx")
+                    Symbol(gep, elementType)
                 }
 
-                arrType.isPointer -> {
-                    val gep = builder.buildInBoundsGEP(arrType, arrPtr, indices = listOf(idxVal), name = "idx")
-                    Symbol(gep, nothingType)
+                is KodeType.Ptr -> {
+                    val elementType = symbol.type.referenced()
+                    val actualPtr = builder.buildLoad(symbol.type.toLLVM(), arrPtr, "ptr_load")
+                    val llvmType = elementType.toLLVM()
+                    val gep = builder.buildInBoundsGEP(llvmType, actualPtr, indices = listOf(idxVal), name = "idx")
+                    Symbol(gep, elementType)
                 }
 
                 else -> error("Can't get element of non-array type.")
@@ -417,33 +423,36 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
         is Unary -> when (op) {
             UnaryOp.Deref -> {
-                val (ptrVal, ptrType) = expr.toLValue()
-                require(ptrType.isPointer) { "Attempt to dereference non-pointer type" }
-                Symbol(ptrVal, nothingType)
+                val symbol = expr.toLValue()
+                require(symbol.type is KodeType.Ptr) { "Attempt to dereference non-pointer type" }
+                val actualPtr = builder.buildLoad(type = symbol.type.toLLVM(), ptr = symbol.value, name = "deref_ptr")
+                Symbol(actualPtr, symbol.type.referenced())
             }
 
             else -> error("Expression is not an lvalue: ${expr.prettyPrint()}")
         }
 
         is Member -> {
-            // Resolve base pointer and value type in memory
-            val (basePtr, baseValTy) = target.toLValue()
+            val symbol = target.toLValue()
+            val (objectPtr, objectType) = if (viaArrow) {
+                require(symbol.type is KodeType.Ptr) { "Arrow operator requires pointer type" }
+                require(symbol.type.base is KodeType.Obj) { "Arrow operator requires pointer to struct" }
+                val ptrVal = builder.buildLoad(symbol.type.toLLVM(), symbol.value, "ptr_load")
+                Pair(ptrVal, symbol.type.base)
+            } else {
+                require(symbol.type is KodeType.Obj) { "Arrow operator requires pointer type" }
+                Pair(symbol.value, symbol.type)
+            }
 
-            // Expect a struct value in memory at basePtr
-            val structName = baseValTy.structName
-            require(structName != null) {
-                "Member access base is not a struct"
-            }
-            val fields = getStructFields(structName)
+            val objectLLVMType = objectType.toLLVM()
+            val fields = getStructFields(objectType.name)
             val fieldIndex = fields.indexOfFirst { it.name == name }
-            require(fieldIndex != -1) {
-                "Unknown field $name in struct $structName"
-            }
+            require(fieldIndex != -1) { "Member not found: ${objectType.name}.$name" }
 
             val indices = listOf(zero, fieldIndex.i32())
-            val fieldPtr = builder.buildInBoundsGEP(baseValTy, basePtr, indices, "field_ptr")
-            val fieldTy = baseValTy.getFieldTypeAt(fieldIndex)
-            Symbol(fieldPtr, fieldTy)
+            val fieldPtr = builder.buildInBoundsGEP(objectLLVMType, objectPtr, indices, name = "field_ptr")
+            val fieldKodeType = objectType.fields[fieldIndex].second
+            Symbol(fieldPtr, fieldKodeType)
         }
 
         else -> error("Unknown lvalue expression: ${prettyPrint()}")
@@ -451,16 +460,13 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: Member): LLVMValueRef {
         val (fieldPtr, fieldType) = node.toLValue()
-        return builder.buildLoad(fieldType, fieldPtr, name = "field")
+        return builder.buildLoad(fieldType.toLLVM(), fieldPtr, name = "field")
     }
 
     override fun visit(node: Assign): LLVMValueRef {
-        val (lValue, lType) = node.target.toLValue()
+        val symbol = node.target.toLValue()
         val rValue = node.value.accept(this)!!
-        require(rValue.type == lType || lType == nothingType) {
-            "LHS and RHS types don't match"
-        }
-        builder.buildStore(rValue, lValue)
+        builder.buildStore(rValue, ptr = symbol.value)
         return rValue
     }
 
@@ -476,12 +482,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         val contBB = addBasicBlock("endif")
 
         // convert to i1 for branch
-        val condBool = if (condVal.type.isFloatLike) {
-            builder.buildFCmp(LLVMRealPredicate.LLVMRealONE, lhs = condVal, rhs = getZero(condVal.type), name = "cond")
-        } else {
-            builder.buildICmp(LLVMIntNE, lhs = condVal, rhs = getZero(boolType), name = "cond")
-        }
-        builder.buildCondBr(condBool, thenBB, elseBB)
+        builder.buildCondBr(condVal.toBool(), thenBB, elseBB)
 
         // then
         builder.positionAtEnd(thenBB)
@@ -539,7 +540,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         builder.positionAtEnd(condBB)
 
         val condVal = node.cond.accept(this)!!
-        builder.buildCondBr(condVal, bodyBB, contBB)
+        builder.buildCondBr(condVal.toBool(), bodyBB, contBB)
         builder.positionAtEnd(bodyBB)
         node.body.accept(this)
         if (bodyBB.terminator == null) {
@@ -559,7 +560,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         if (bodyBB.terminator == null) builder.buildBr(condBB)
         builder.positionAtEnd(condBB)
         val condVal = node.cond.accept(this)!!
-        builder.buildCondBr(condVal, bodyBB, contBB)
+        builder.buildCondBr(condVal.toBool(), bodyBB, contBB)
         builder.positionAtEnd(contBB)
         return null
     }
@@ -582,7 +583,7 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
         builder.buildBr(condBB)
         builder.positionAtEnd(condBB)
         val condVal = node.cond.accept(this)!!
-        builder.buildCondBr(condVal, bodyBB, contBB)
+        builder.buildCondBr(condVal.toBool(), bodyBB, contBB)
         builder.positionAtEnd(bodyBB)
         node.body.accept(this)
         val bodyEndBB = builder.insertBlock
@@ -650,12 +651,43 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: SwitchCase) = null
 
-    override fun visit(node: Cast) = null
+    override fun visit(node: Cast): LLVMValueRef {
+        val value = node.expr.accept(this)!!
+        val srcLLVMType = value.type
+        val destKodeType = node.kodeType ?: error("Cast type not resolved at ${node.span}")
+        val destLLVMType = destKodeType.toLLVM()
+
+        if (srcLLVMType == destLLVMType) return value
+
+        val srcIsFloat = srcLLVMType.isFloatLike
+        val destIsFloat = destLLVMType.isFloatLike
+        val srcIsPtr = srcLLVMType.isPointer
+        val destIsPtr = destLLVMType.isPointer
+
+        return when {
+            srcIsFloat && !destIsFloat -> builder.buildFPToSI(value, destLLVMType)
+            !srcIsFloat && destIsFloat -> builder.buildSIToFP(value, destLLVMType)
+            srcIsPtr && destIsPtr -> builder.buildPointerCast(value, destLLVMType)
+            !srcIsFloat && !srcIsPtr && destIsPtr -> builder.buildIntToPtr(value, destLLVMType)
+            srcIsPtr && !destIsFloat && !destIsPtr -> builder.buildPtrToInt(value, destLLVMType)
+            !srcIsFloat && !srcIsPtr && !destIsFloat && !destIsPtr -> {
+                val srcWidth = srcLLVMType.getIntTypeWidth()
+                val destWidth = destLLVMType.getIntTypeWidth()
+                when {
+                    srcWidth > destWidth -> builder.buildTrunc(value, destLLVMType)
+                    srcWidth < destWidth -> builder.buildSExt(value, destLLVMType)
+                    else -> builder.buildBitCast(value, destLLVMType)
+                }
+            }
+
+            else -> builder.buildBitCast(value, destLLVMType)
+        }
+    }
 
     private fun buildIncDec(target: Expr, isIncrement: Boolean, isPrefix: Boolean): LLVMValueRef {
         val (ptr, type) = target.toLValue()
         val isFloat = type.isFloatLike
-        val cur = load(value = ptr, type, name = "tmp")
+        val cur = load(value = ptr, type.toLLVM(), name = "tmp")
         val one = if (isFloat) 1.0.f64() else 1.i32()
         val newVal = if (isIncrement) {
             when (isFloat) {
@@ -678,6 +710,37 @@ class Codegen : CodegenContext(), AstVisitor<LLVMValueRef?> {
 
     override fun visit(node: PostfixDec): LLVMValueRef {
         return buildIncDec(node.target, isIncrement = false, isPrefix = false)
+    }
+
+    override fun visit(node: StructInit): LLVMValueRef {
+        val structType = getStructType(node.typeName)
+            ?: error("Unknown struct type: ${node.typeName}")
+
+        // Allocate struct on stack
+        val structPtr = builder.buildAlloca(structType, "struct")
+
+        // Get struct fields info
+        val fields = getStructFields(node.typeName)
+
+        // Initialize fields (named only)
+        for (fieldInit in node.fieldInits) {
+            val fieldName = fieldInit.name
+            val fieldIndex = fields.indexOfFirst { it.name == fieldName }
+            if (fieldIndex == -1) {
+                error("Field $fieldName not found in ${node.typeName}")
+            }
+
+            val indices = listOf(zero, fieldIndex.i32())
+            val fieldPtr = builder.buildInBoundsGEP(structType, structPtr, indices, "field_${fieldName}")
+            val value = fieldInit.value.accept(this)!!
+            builder.buildStore(value, fieldPtr)
+        }
+
+        return load(structPtr, structType, "struct_val")
+    }
+
+    override fun visit(node: FieldInit): LLVMValueRef? {
+        return node.value.accept(this)
     }
 
     companion object {

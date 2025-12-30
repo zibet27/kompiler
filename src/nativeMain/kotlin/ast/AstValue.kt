@@ -48,6 +48,10 @@ sealed interface AstValue {
     data class SwitchCaseV(val case: SwitchCase) : AstValue
     data class SwitchCasesV(val list: List<SwitchCase>) : AstValue
 
+    // Struct initialization
+    data class FieldInitV(val fieldInit: FieldInit) : AstValue
+    data class FieldInitsV(val list: List<FieldInit>) : AstValue
+
     data object Empty : AstValue
 }
 
@@ -69,6 +73,8 @@ internal fun fields(v: AstValue) = (v as AstValue.FieldsV)
 internal fun switchCase(v: AstValue) = (v as AstValue.SwitchCaseV)
 internal fun switchCases(v: AstValue) = (v as AstValue.SwitchCasesV)
 internal fun initV(v: AstValue) = (v as AstValue.InitV)
+internal fun fieldInit(v: AstValue) = (v as AstValue.FieldInitV)
+internal fun fieldInits(v: AstValue) = (v as AstValue.FieldInitsV)
 
 internal fun span(values: List<AstValue>): Span {
     var first: Span? = null
@@ -101,6 +107,8 @@ internal fun span(values: List<AstValue>): Span {
         is AstValue.SwitchCasesV -> v.list.firstOrNull()?.span?.let { remember(it) }
         is AstValue.Tys -> v.list.firstOrNull()?.span?.let { remember(it) }
         is AstValue.InitV -> v.init?.span?.let { remember(it) }
+        is AstValue.FieldInitV -> remember(v.fieldInit.span)
+        is AstValue.FieldInitsV -> v.list.firstOrNull()?.span?.let { remember(it) }
         is AstValue.Empty -> {}
     }
     return when {

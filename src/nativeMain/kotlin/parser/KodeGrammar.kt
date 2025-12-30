@@ -74,6 +74,10 @@ object KodeGrammar {
         val CaseList = "CaseList".nt
         val Case = "Case".nt
         val DefaultCaseOpt = "DefaultCaseOpt".nt
+        val StructInitExpr = "StructInitExpr".nt
+        val FieldInitsOpt = "FieldInitsOpt".nt
+        val FieldInitList = "FieldInitList".nt
+        val FieldInit = "FieldInit".nt
     }
     fun build(): Grammar = grammar(startSymbol = NT.Program) {
         // Program and top-level declarations
@@ -324,6 +328,7 @@ object KodeGrammar {
         rule(lhs = NT.PrimaryExpr, NT.DoWhileExpr)
         rule(lhs = NT.PrimaryExpr, NT.ForExpr)
         rule(lhs = NT.PrimaryExpr, NT.SwitchExpr)
+        rule(lhs = NT.PrimaryExpr, NT.StructInitExpr)
 
         rule(lhs = NT.GroupedExpr, TokenType.LBRACE.t, NT.Expr, TokenType.RBRACE.t)
 
@@ -339,5 +344,14 @@ object KodeGrammar {
         rule(lhs = NT.Case, TokenType.INT.t, TokenType.ARROW.t, NT.Expr, TokenType.SEMICOLON.t)
         rule(lhs = NT.DefaultCaseOpt, TokenType.ELSE.t, TokenType.ARROW.t, NT.Expr, TokenType.SEMICOLON.t)
         rule(lhs = NT.DefaultCaseOpt)
+
+        // Struct initialization: TYPENAME { FieldInitsOpt }
+        rule(lhs = NT.StructInitExpr, TokenType.TYPENAME.t, TokenType.LBRACE.t, NT.FieldInitsOpt, TokenType.RBRACE.t)
+        rule(lhs = NT.FieldInitsOpt, NT.FieldInitList)
+        rule(lhs = NT.FieldInitsOpt)
+        rule(lhs = NT.FieldInitList, NT.FieldInitList, TokenType.COMMA.t, NT.FieldInit)
+        rule(lhs = NT.FieldInitList, NT.FieldInit)
+        // Named only: IDENT : Expr
+        rule(lhs = NT.FieldInit, TokenType.IDENT.t, TokenType.COLON.t, NT.Expr)
     }
 }

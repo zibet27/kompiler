@@ -2,6 +2,7 @@
   <dictionary name="project">
     <words>
       <w>alnum</w>
+      <w>bitcast</w>
       <w>exprs</w>
     </words>
   </dictionary>

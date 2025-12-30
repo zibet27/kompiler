@@ -1,5 +1,6 @@
 package test
 
+import Kompiler
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.assertEquals
@@ -7,10 +8,8 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readString
-import parser.KodeParser
-import type.TypeChecker
 
-class ExamplesTypecheckTest {
+class ExamplesE2ETest {
     private fun readFile(path: Path): String =
         SystemFileSystem.source(path).buffered().use { it.readString() }
 
@@ -27,26 +26,18 @@ class ExamplesTypecheckTest {
 
         assertTrue(files.isNotEmpty(), "No valid .kode files found in examples/")
 
-        val parser = KodeParser()
+        val compiler = Kompiler()
 
         var failed = 0
-        files.forEach { path ->
+        for (path in files) {
             val source = readFile(path)
-            val diags = runCatching {
-                val program = parser.parse(source)
-                val checker = TypeChecker(program)
-                checker.check()
-            }
-            if (diags.isFailure) {
-                println("Failed to typecheck ${path.name}: ${diags.exceptionOrNull()?.message}")
-                failed++
-            } else if (diags.getOrNull()?.isNotEmpty() == true) {
-                println("Type errors in ${path.name}:")
-                diags.getOrThrow().forEach { println("  ${it.span}: ${it.message}") }
+            val result = runCatching { compiler.run(source) }
+            if (result.isFailure) {
+                println("Failed to run ${path.name}: ${result.exceptionOrNull()?.message}")
                 failed++
             }
         }
 
-        assertEquals(0, failed, "Some examples failed type checking")
+        assertEquals(0, failed, "Some examples failed to run")
     }
 }

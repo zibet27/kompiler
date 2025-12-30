@@ -31,6 +31,5 @@ fun main{}: i32 (
         print_int{ y };  // Should still print 20
     );
     print_int{ x };  // Should still print 10
-
-    x;
+    0;
 );

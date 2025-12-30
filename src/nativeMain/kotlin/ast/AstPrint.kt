@@ -4,7 +4,7 @@ fun Node.prettyPrint(indent: Int = 0): String {
     val prefix = "  ".repeat(indent)
     return when (this) {
         is Program -> "${prefix}Program(\n" +
-                decls.joinToString("\n") { it.prettyPrint(indent + 1) } +
+                declarations.joinToString("\n") { it.prettyPrint(indent + 1) } +
                 "\n$prefix)"
 
         is FunDecl -> "${prefix}FunDecl(name='$name', params=[${params.joinToString { it.name }}], returnType=${returnType.toTypeString()})"
@@ -66,7 +66,7 @@ fun Node.prettyPrint(indent: Int = 0): String {
                 "\n$prefix)"
 
         is SwitchCase -> "${prefix}SwitchCase($value: ${result.exprToString()})"
-        is Cast -> "${prefix}Cast($ident as ${type.toTypeString()})"
+        is Cast -> "${prefix}Cast(${expr.exprToString()} as ${toType.toTypeString()})"
         is PostfixInc -> "${prefix}PostfixInc(${target.exprToString()}++)"
         is PostfixDec -> "${prefix}PostfixDec(${target.exprToString()}--)"
 
@@ -99,7 +99,8 @@ private fun Expr.exprToString(): String = when (this) {
     is DoWhileExpr -> "do...while(...)"
     is ForExpr -> "for(...)"
     is SwitchExpr -> "switch(...)"
-    is Cast -> "($ident as ${type.toTypeString()})"
+    is Cast -> "(${expr.exprToString()} as ${toType.toTypeString()})"
     is PostfixInc -> "${target.exprToString()}++"
     is PostfixDec -> "${target.exprToString()}--"
+    is StructInit -> "$typeName{${fieldInits.joinToString { fi -> "${fi.name}: ${fi.value.exprToString()}" }}}"
 }

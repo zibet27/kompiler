@@ -79,7 +79,7 @@ class LexerTest {
         val tokens = LexerImpl(program).tokenize()
         val intTok = tokens.first { it is Token.IntLiteral }
         assertEquals("123", intTok.lexeme)
-        // The literal should be on line 2, columns start..end depending on indent; check line only for stability
+        // The literal should be on line 2, columns start-end depending on indent; check line only for stability
         assertEquals(2, intTok.span.start.line)
         assertEquals(2, intTok.span.end.line)
         assertTrue(intTok.span.end.column > intTok.span.start.column)

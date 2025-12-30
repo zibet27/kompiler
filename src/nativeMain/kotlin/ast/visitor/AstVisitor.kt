@@ -58,6 +58,8 @@ interface AstVisitor<R> {
     fun visit(node: Cast): R
     fun visit(node: PostfixInc): R
     fun visit(node: PostfixDec): R
+    fun visit(node: StructInit): R
+    fun visit(node: FieldInit): R
 }
 
 // Convenience double-dispatch entry points
@@ -105,5 +107,7 @@ fun <R> Node.accept(v: AstVisitor<R>): R = when (this) {
     is Cast -> v.visit(this)
     is PostfixInc -> v.visit(this)
     is PostfixDec -> v.visit(this)
+    is StructInit -> v.visit(this)
+    is FieldInit -> v.visit(this)
     else -> error("Unrecognized node type: ${this::class.simpleName}")
 }

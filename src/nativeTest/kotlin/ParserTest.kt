@@ -50,14 +50,14 @@ class ParserTest {
     @Test
     fun emptyProgram() {
         val prog = parse("")
-        assertEquals(0, prog.decls.size)
+        assertEquals(0, prog.declarations.size)
     }
 
     @Test
     fun simpleFunctionDeclaration() {
         val prog = parse("fun add{ a: i32, b: i32 }: i32;")
-        assertEquals(1, prog.decls.size)
-        val decl = prog.decls[0] as FunDecl
+        assertEquals(1, prog.declarations.size)
+        val decl = prog.declarations[0] as FunDecl
         assertEquals("add", decl.name)
         assertEquals(2, decl.params.size)
         assertTrue(decl.returnType is BuiltinType)
@@ -66,8 +66,8 @@ class ParserTest {
     @Test
     fun functionDefinition() {
         val prog = parse("fun add{ a: i32, b: i32 }: i32 ( a + b; );")
-        assertEquals(1, prog.decls.size)
-        val def = prog.decls[0] as FunDef
+        assertEquals(1, prog.declarations.size)
+        val def = prog.declarations[0] as FunDef
         assertEquals("add", def.name)
         assertEquals(2, def.params.size)
         assertTrue(def.body.items.isNotEmpty())
@@ -76,8 +76,8 @@ class ParserTest {
     @Test
     fun alienFunctionDeclaration() {
         val prog = parse("alien fun print_int{ x: i32 };")
-        assertEquals(1, prog.decls.size)
-        val alien = prog.decls[0] as AlienFunDecl
+        assertEquals(1, prog.declarations.size)
+        val alien = prog.declarations[0] as AlienFunDecl
         assertEquals("print_int", alien.name)
         assertEquals(1, alien.params.size)
     }
@@ -85,16 +85,16 @@ class ParserTest {
     @Test
     fun objectDeclaration() {
         val prog = parse("object Point;")
-        assertEquals(1, prog.decls.size)
-        val obj = prog.decls[0] as ObjectDecl
+        assertEquals(1, prog.declarations.size)
+        val obj = prog.declarations[0] as ObjectDecl
         assertEquals("Point", obj.name)
     }
 
     @Test
     fun objectDefinition() {
         val prog = parse("object Point ( x: i32; y: i32; );")
-        assertEquals(1, prog.decls.size)
-        val obj = prog.decls[0] as ObjectDef
+        assertEquals(1, prog.declarations.size)
+        val obj = prog.declarations[0] as ObjectDef
         assertEquals("Point", obj.name)
         assertEquals(2, obj.fields.size)
         assertEquals("x", obj.fields[0].name)
@@ -104,8 +104,8 @@ class ParserTest {
     @Test
     fun typeAlias() {
         val prog = parse("typealias BinaryOp = { i32, i32 } -> i32;")
-        assertEquals(1, prog.decls.size)
-        val alias = prog.decls[0] as TypeAlias
+        assertEquals(1, prog.declarations.size)
+        val alias = prog.declarations[0] as TypeAlias
         assertEquals("BinaryOp", alias.name)
         assertEquals(2, alias.paramTypes.size)
     }
@@ -113,8 +113,8 @@ class ParserTest {
     @Test
     fun globalVariableDeclaration() {
         val prog = parse("i32 global_var = 10;")
-        assertEquals(1, prog.decls.size)
-        val global = prog.decls[0] as GlobalVarDecl
+        assertEquals(1, prog.declarations.size)
+        val global = prog.declarations[0] as GlobalVarDecl
         assertTrue(global.type is BuiltinType)
         assertEquals(1, global.declarators.size)
         assertEquals("global_var", global.declarators[0].name)
@@ -123,8 +123,8 @@ class ParserTest {
     @Test
     fun globalArrayDeclaration() {
         val prog = parse("u8 global_array[10] with ' ';")
-        assertEquals(1, prog.decls.size)
-        val global = prog.decls[0] as GlobalVarDecl
+        assertEquals(1, prog.declarations.size)
+        val global = prog.declarations[0] as GlobalVarDecl
         val declarator = global.declarators[0]
         assertEquals("global_array", declarator.name)
         assertEquals(1, declarator.arrayDims.size)
@@ -134,8 +134,8 @@ class ParserTest {
     @Test
     fun multipleGlobalVariables() {
         val prog = parse("i32 x = 1, y = 2, z = 3;")
-        assertEquals(1, prog.decls.size)
-        val global = prog.decls[0] as GlobalVarDecl
+        assertEquals(1, prog.declarations.size)
+        val global = prog.declarations[0] as GlobalVarDecl
         assertEquals(3, global.declarators.size)
     }
 
@@ -152,17 +152,17 @@ class ParserTest {
     @Test
     fun pointerTypes() {
         val prog = parse("i32 ptr p; i32 ptr ptr pp;")
-        assertEquals(2, prog.decls.size)
-        val p1 = (prog.decls[0] as GlobalVarDecl).type as PointerType
+        assertEquals(2, prog.declarations.size)
+        val p1 = (prog.declarations[0] as GlobalVarDecl).type as PointerType
         assertEquals(1, p1.levels)
-        val p2 = (prog.decls[1] as GlobalVarDecl).type as PointerType
+        val p2 = (prog.declarations[1] as GlobalVarDecl).type as PointerType
         assertEquals(2, p2.levels)
     }
 
     @Test
     fun namedTypes() {
         val prog = parse("object Point; Point p;")
-        val decl = prog.decls[1] as GlobalVarDecl
+        val decl = prog.declarations[1] as GlobalVarDecl
         assertTrue(decl.type is NamedType)
         assertEquals("Point", decl.type.name)
     }
@@ -170,7 +170,7 @@ class ParserTest {
     @Test
     fun functionTypes() {
         val prog = parse("typealias Callback = { i32, i32 } -> void;")
-        val alias = prog.decls[0] as TypeAlias
+        val alias = prog.declarations[0] as TypeAlias
         assertEquals(2, alias.paramTypes.size)
     }
 
@@ -179,7 +179,7 @@ class ParserTest {
     @Test
     fun integerLiteral() {
         val prog = parse("fun main{}: i32 ( 42; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         val lit = stmt.expr as IntLit
         assertEquals(42, lit.value)
@@ -188,7 +188,7 @@ class ParserTest {
     @Test
     fun floatLiteral() {
         val prog = parse("fun main{}: i32 ( 3.14; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         assertTrue(stmt.expr is F64Lit)
     }
@@ -196,7 +196,7 @@ class ParserTest {
     @Test
     fun charLiteral() {
         val prog = parse("fun main{}: i32 ( 'a'; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         assertTrue(stmt.expr is CharLit)
     }
@@ -204,7 +204,7 @@ class ParserTest {
     @Test
     fun stringLiteral() {
         val prog = parse("fun main{}: i32 ( \"hello\"; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         assertTrue(stmt.expr is StringLit)
     }
@@ -212,7 +212,7 @@ class ParserTest {
     @Test
     fun identifier() {
         val prog = parse("fun main{}: i32 ( i32 x = 5; x; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val ident = stmt.expr as Ident
         assertEquals("x", ident.name)
@@ -265,7 +265,7 @@ class ParserTest {
     @Test
     fun prefixIncrementDecrement() {
         val prog = parse("fun main{}: i32 ( i32 a = 5; i32 b = ++a; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as LocalVarDecl
         val init = stmt.declarators[0].init as AssignInit
         assertTrue(init.expr is Unary)
@@ -275,7 +275,7 @@ class ParserTest {
     @Test
     fun postfixIncrementDecrement() {
         val prog = parse("fun main{}: i32 ( i32 a = 5; a++; a--; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt1 = def.body.items[1] as ExprStmt
         val stmt2 = def.body.items[2] as ExprStmt
         assertTrue(stmt1.expr is PostfixInc)
@@ -285,7 +285,7 @@ class ParserTest {
     @Test
     fun pointerOperations() {
         val prog = parse("fun main{}: i32 ( i32 a = 5; i32 ptr p = &a; i32 b = *p; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val init1 = (def.body.items[1] as LocalVarDecl).declarators[0].init as AssignInit
         assertTrue(init1.expr is Unary)
         assertEquals(UnaryOp.AddressOf, init1.expr.op)
@@ -297,7 +297,7 @@ class ParserTest {
     @Test
     fun functionCall() {
         val prog = parse("fun add{ a: i32, b: i32 }: i32 ( a + b; ); fun main{}: i32 ( add{ 1, 2 }; );")
-        val def = prog.decls[1] as FunDef
+        val def = prog.declarations[1] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         val call = stmt.expr as Call
         assertEquals(2, call.args.size)
@@ -306,7 +306,7 @@ class ParserTest {
     @Test
     fun arrayIndexing() {
         val prog = parse("fun main{}: i32 ( i32 arr[5]; arr[0] = 1; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val assign = stmt.expr as Assign
         assertTrue(assign.target is Index)
@@ -315,7 +315,7 @@ class ParserTest {
     @Test
     fun memberAccess() {
         val prog = parse("object Point ( x: i32; ); fun main{}: i32 ( Point p; p.x = 5; );")
-        val def = prog.decls[1] as FunDef
+        val def = prog.declarations[1] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val assign = stmt.expr as Assign
         val member = assign.target as Member
@@ -326,7 +326,7 @@ class ParserTest {
     @Test
     fun arrowMemberAccess() {
         val prog = parse("object Point ( x: i32; ); fun main{}: i32 ( Point ptr p; p->x = 5; );")
-        val def = prog.decls[1] as FunDef
+        val def = prog.declarations[1] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val assign = stmt.expr as Assign
         val member = assign.target as Member
@@ -337,7 +337,7 @@ class ParserTest {
     @Test
     fun assignment() {
         val prog = parse("fun main{}: i32 ( i32 a = 5; a = 10; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         assertTrue(stmt.expr is Assign)
     }
@@ -345,18 +345,18 @@ class ParserTest {
     @Test
     fun casting() {
         val prog = parse("fun main{}: i32 ( f64 d = 3.14; i32 i = d ~> i32; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[1] as LocalVarDecl
         val init = decl.declarators[0].init as AssignInit
         val cast = init.expr as Cast
-        assertEquals("d", cast.ident)
-        assertTrue(cast.type is BuiltinType)
+        assertEquals("d", (cast.expr as Ident).name)
+        assertTrue(cast.toType is BuiltinType)
     }
 
     @Test
     fun groupedExpression() {
         val prog = parse("fun main{}: i32 ( i32 a = { 1 + 2 } * 3; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         val init = decl.declarators[0].init as AssignInit
         assertTrue(init.expr is Binary)
@@ -372,7 +372,7 @@ class ParserTest {
     @Test
     fun ifExpression() {
         val prog = parse("fun main{}: i32 ( if { 1 > 0 } ( 42; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         val ifExpr = stmt.expr as IfExpr
         assertTrue(ifExpr.cond is Binary)
@@ -383,7 +383,7 @@ class ParserTest {
     @Test
     fun ifElseExpression() {
         val prog = parse("fun main{}: i32 ( i32 x = if { 1 > 0 } ( 42; ) else ( 0; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         val init = decl.declarators[0].init as AssignInit
         val ifExpr = init.expr as IfExpr
@@ -398,7 +398,7 @@ class ParserTest {
     @Test
     fun whileLoop() {
         val prog = parse("fun main{}: i32 ( i32 i = 0; while { i < 10 } ( i++; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val whileExpr = stmt.expr as WhileExpr
         assertTrue(whileExpr.cond is Binary)
@@ -408,7 +408,7 @@ class ParserTest {
     @Test
     fun doWhileLoop() {
         val prog = parse("fun main{}: i32 ( i32 i = 0; do ( i++; ) while { i < 10 }; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val doWhileExpr = stmt.expr as DoWhileExpr
         assertTrue(doWhileExpr.cond is Binary)
@@ -418,7 +418,7 @@ class ParserTest {
     @Test
     fun forLoop() {
         val prog = parse("fun main{}: i32 ( for { i32 i = 0; i < 10; i++ } ( i; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[0] as ExprStmt
         val forExpr = stmt.expr as ForExpr
         assertTrue(forExpr.init is LocalVarDecl)
@@ -434,7 +434,7 @@ class ParserTest {
     @Test
     fun switchExpression() {
         val prog = parse("fun main{}: i32 ( i32 x = switch { 3 } ( 1 -> 10; 2 -> 20; 3 -> 30; else -> 0; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         val init = decl.declarators[0].init as AssignInit
         val switchExpr = init.expr as SwitchExpr
@@ -445,7 +445,7 @@ class ParserTest {
     @Test
     fun switchWithoutDefault() {
         val prog = parse("fun main{}: i32 ( i32 x = switch { 3 } ( 1 -> 10; 2 -> 20; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         val init = decl.declarators[0].init as AssignInit
         val switchExpr = init.expr as SwitchExpr
@@ -457,21 +457,21 @@ class ParserTest {
     @Test
     fun skipStatement() {
         val prog = parse("fun main{}: i32 ( skip; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         assertTrue(def.body.items[0] is SkipStmt)
     }
 
     @Test
     fun stopStatement() {
         val prog = parse("fun main{}: i32 ( stop; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         assertTrue(def.body.items[0] is StopStmt)
     }
 
     @Test
     fun blockExpression() {
         val prog = parse("fun main{}: i32 ( i32 x = ( i32 a = 5; a + 10; ); );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         val init = decl.declarators[0].init as AssignInit
         assertTrue(init.expr is BlockExpr)
@@ -485,7 +485,7 @@ class ParserTest {
     @Test
     fun localVariableDeclaration() {
         val prog = parse("fun main{}: i32 ( i32 a; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         assertEquals("a", decl.declarators[0].name)
     }
@@ -493,7 +493,7 @@ class ParserTest {
     @Test
     fun localVariableWithInitialization() {
         val prog = parse("fun main{}: i32 ( i32 a = 5; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         assertNotNull(decl.declarators[0].init)
     }
@@ -501,7 +501,7 @@ class ParserTest {
     @Test
     fun localArrayDeclaration() {
         val prog = parse("fun main{}: i32 ( i32 arr[10] with 0; );")
-        val def = prog.decls[0] as FunDef
+        val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         val declarator = decl.declarators[0]
         assertEquals(1, declarator.arrayDims.size)
@@ -530,21 +530,21 @@ class ParserTest {
             fun main{}: i32 ( BinaryOperation op = add; i32 result = op{ 5, 3 }; 0; );
         """.trimIndent())
 
-        assertEquals(3, prog.decls.size)
+        assertEquals(3, prog.declarations.size)
 
         // Check typealias
-        val alias = prog.decls[0] as TypeAlias
+        val alias = prog.declarations[0] as TypeAlias
         assertEquals("BinaryOperation", alias.name)
         assertEquals(2, alias.paramTypes.size)
         assertTrue(alias.returnType is BuiltinType)
 
         // Check function definition
-        val addFun = prog.decls[1] as FunDef
+        val addFun = prog.declarations[1] as FunDef
         assertEquals("add", addFun.name)
         assertEquals(2, addFun.params.size)
 
         // Check the main function with function pointer usage
-        val mainFun = prog.decls[2] as FunDef
+        val mainFun = prog.declarations[2] as FunDef
         val opDecl = mainFun.body.items[0] as LocalVarDecl
         assertEquals("BinaryOperation", (opDecl.type as NamedType).name)
 
@@ -561,17 +561,17 @@ class ParserTest {
             fun main{}: i32 ( Point p; p.x = 10; p.y = 20; 0; );
         """.trimIndent())
 
-        assertEquals(2, prog.decls.size)
+        assertEquals(2, prog.declarations.size)
 
         // Check object definition
-        val pointObj = prog.decls[0] as ObjectDef
+        val pointObj = prog.declarations[0] as ObjectDef
         assertEquals("Point", pointObj.name)
         assertEquals(2, pointObj.fields.size)
         assertEquals("x", pointObj.fields[0].name)
         assertEquals("y", pointObj.fields[1].name)
 
         // Check struct usage in the main
-        val mainFun = prog.decls[1] as FunDef
+        val mainFun = prog.declarations[1] as FunDef
         val pDecl = mainFun.body.items[0] as LocalVarDecl
         assertTrue(pDecl.type is NamedType)
         assertEquals("Point", pDecl.type.name)
@@ -593,10 +593,10 @@ class ParserTest {
             fun main{}: i32 ( i32 x = 5; i32 y = 10; swap{ &x, &y }; 0; );
         """.trimIndent())
 
-        assertEquals(2, prog.decls.size)
+        assertEquals(2, prog.declarations.size)
 
         // Check swap function signature
-        val swapFun = prog.decls[0] as FunDef
+        val swapFun = prog.declarations[0] as FunDef
         assertEquals("swap", swapFun.name)
         assertEquals(2, swapFun.params.size)
         assertTrue(swapFun.params[0].type is PointerType)
@@ -610,7 +610,7 @@ class ParserTest {
         assertEquals(UnaryOp.Deref, tempInit.expr.op)
 
         // Check the main function with address-of operations
-        val mainFun = prog.decls[1] as FunDef
+        val mainFun = prog.declarations[1] as FunDef
         val swapCall = (mainFun.body.items[2] as ExprStmt).expr as Call
         assertEquals(2, swapCall.args.size)
         assertTrue(swapCall.args[0] is Unary)
@@ -623,7 +623,7 @@ class ParserTest {
     fun operatorPrecedence() {
         // Test: 2 + 3 * 4 should parse as 2 + (3 * 4) = 14
         val prog1 = parse("fun main{}: i32 ( i32 result = 2 + 3 * 4; );")
-        val def1 = prog1.decls[0] as FunDef
+        val def1 = prog1.declarations[0] as FunDef
         val decl1 = def1.body.items[0] as LocalVarDecl
         val expr1 = (decl1.declarators[0].init as AssignInit).expr as Binary
         assertEquals(BinaryOp.Add, expr1.op)
@@ -632,7 +632,7 @@ class ParserTest {
 
         // Test: { 2 + 3 } * 4 should parse as (2 + 3) * 4 = 20
         val prog2 = parse("fun main{}: i32 ( i32 result = { 2 + 3 } * 4; );")
-        val def2 = prog2.decls[0] as FunDef
+        val def2 = prog2.declarations[0] as FunDef
         val decl2 = def2.body.items[0] as LocalVarDecl
         val expr2 = (decl2.declarators[0].init as AssignInit).expr as Binary
         assertEquals(BinaryOp.Mul, expr2.op)
@@ -641,7 +641,7 @@ class ParserTest {
 
         // Test: 2 * 3 + 4 * 5 should parse as (2 * 3) + (4 * 5) = 26
         val prog3 = parse("fun main{}: i32 ( i32 result = 2 * 3 + 4 * 5; );")
-        val def3 = prog3.decls[0] as FunDef
+        val def3 = prog3.declarations[0] as FunDef
         val decl3 = def3.body.items[0] as LocalVarDecl
         val expr3 = (decl3.declarators[0].init as AssignInit).expr as Binary
         assertEquals(BinaryOp.Add, expr3.op)
@@ -663,9 +663,9 @@ class ParserTest {
             );
         """.trimIndent())
 
-        assertEquals(2, prog.decls.size)
+        assertEquals(2, prog.declarations.size)
 
-        val mainFun = prog.decls[1] as FunDef
+        val mainFun = prog.declarations[1] as FunDef
         assertEquals(4, mainFun.body.items.size)
 
         // Check array declaration

@@ -198,13 +198,13 @@ object AstActions : SemanticActions<AstValue> {
 
             KodeGrammar.NT.Declarator -> {
                 val nameTok = tok(children[0])
-                val dims =
-                    exprs(children[1]).list.map { it as? IntLit ?: error("Expected int literal for array dimension") }
+                val dims = exprs(children[1]).list
+                    .map { it as? IntLit ?: error("Expected int literal for array dimension") }
                 val init = initV(children[2]).init
                 require(init != null) {
-                    "Uninitialized variable $nameTok at ${nameTok.span}."
+                    "Uninitialized variable $nameTok."
                 }
-                AstValue.DeclaratorV(Declarator(nameTok.lexeme, dims, init, span(children)))
+                AstValue.DeclaratorV(Declarator(nameTok.lexeme, init, dims, span(children)))
             }
 
             KodeGrammar.NT.ArrayDimensionsOpt -> when (rhs.size) {
@@ -369,12 +369,7 @@ object AstActions : SemanticActions<AstValue> {
                     )
 
                     is Token.TildeGreater -> AstValue.ExprV(
-                        Cast(
-                            when (val e = expr(children[0])) {
-                                is Ident -> e.name
-                                else -> error("Cast requires identifier at ${e.span}")
-                            }, ty(children[2]).type, span(children)
-                        )
+                        Cast(expr(children[0]), ty(children[2]).type, span(children))
                     )
 
                     else -> t.unexpected()
@@ -565,6 +560,27 @@ object AstActions : SemanticActions<AstValue> {
             KodeGrammar.NT.RetTypeOpt -> if (rhs.isEmpty()) {
                 error("Return type expected at ${span(children)}")
             } else AstValue.Ty(ty(children[1]).type)
+
+            // Struct initialization
+            KodeGrammar.NT.StructInitExpr -> {
+                val typeName = (tok(children[0]) as Token.TypeName).lexeme
+                val fieldInitsList = fieldInits(children[2]).list
+                AstValue.ExprV(StructInit(typeName, fieldInitsList, span(children)))
+            }
+
+            KodeGrammar.NT.FieldInitsOpt -> if (rhs.isEmpty()) AstValue.FieldInitsV(emptyList()) else children[0]
+            KodeGrammar.NT.FieldInitList -> when (rhs.size) {
+                1 -> AstValue.FieldInitsV(listOf(fieldInit(children[0]).fieldInit))
+                3 -> AstValue.FieldInitsV(fieldInits(children[0]).list + fieldInit(children[2]).fieldInit)
+                else -> error("FieldInitList shape")
+            }
+
+            KodeGrammar.NT.FieldInit -> {
+                // Named: IDENT : Expr
+                val name = tok(children[0]).lexeme
+                val value = expr(children[2])
+                AstValue.FieldInitV(FieldInit(name, value, span(children)))
+            }
 
             else -> if (children.size == 1) children[0] else error("Unhandled reduction for ${rule.lhs} := ${rule.rhs}")
         }

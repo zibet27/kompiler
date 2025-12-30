@@ -45,8 +45,6 @@ fun LLVMContextRef.f32Type(): LLVMTypeRef = LLVMFloatTypeInContext(this)!!
 
 fun LLVMContextRef.f64Type(): LLVMTypeRef = LLVMDoubleTypeInContext(this)!!
 
-fun LLVMContextRef.halfType(): LLVMTypeRef = LLVMHalfTypeInContext(this)!!
-
 fun LLVMTypeRef.pointerType(addressSpace: UInt = 0u): LLVMTypeRef =
     LLVMPointerType(ElementType = this, AddressSpace = addressSpace)!!
 
@@ -77,12 +75,6 @@ fun LLVMTypeRef.setBody(fieldTypes: List<LLVMTypeRef>, packed: Boolean = false) 
         Packed = if (packed) 1 else 0
     )
 
-fun LLVMTypeRef.getFieldTypeAt(index: Int): LLVMTypeRef =
-    LLVMStructGetTypeAtIndex(this, index.toUInt())!!
-
-val LLVMTypeRef.structName: String?
-    get() = LLVMGetStructName(this)?.toKString()
-
 // ===== Type Queries =====
 
 val LLVMValueRef.type: LLVMTypeRef
@@ -90,15 +82,6 @@ val LLVMValueRef.type: LLVMTypeRef
 
 val LLVMTypeRef.kind: LLVMTypeKind
     get() = LLVMGetTypeKind(Ty = this)
-
-val LLVMTypeRef.elementType: LLVMTypeRef
-    get() {
-        require(kind != LLVMPointerTypeKind)
-        return LLVMGetElementType(Ty = this)!!
-    }
-
-val LLVMTypeRef.returnType: LLVMTypeRef
-    get() = LLVMGetReturnType(this)!!
 
 // ===== Constants =====
 
@@ -294,6 +277,56 @@ fun LLVMBuilderRef.buildZExt(
     destType: LLVMTypeRef,
     name: String = "z_ext"
 ): LLVMValueRef = LLVMBuildZExt(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildSExt(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "s_ext"
+): LLVMValueRef = LLVMBuildSExt(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildTrunc(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "trunc"
+): LLVMValueRef = LLVMBuildTrunc(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildFPToSI(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "fp_to_si"
+): LLVMValueRef = LLVMBuildFPToSI(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildSIToFP(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "si_to_fp"
+): LLVMValueRef = LLVMBuildSIToFP(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildBitCast(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "bitcast"
+): LLVMValueRef = LLVMBuildBitCast(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildPointerCast(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "ptr_cast"
+): LLVMValueRef = LLVMBuildPointerCast(this, value, destType, name)!!
+
+fun LLVMTypeRef.getIntTypeWidth(): UInt = LLVMGetIntTypeWidth(this)
+
+fun LLVMBuilderRef.buildIntToPtr(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "int_to_ptr"
+): LLVMValueRef = LLVMBuildIntToPtr(this, value, destType, name)!!
+
+fun LLVMBuilderRef.buildPtrToInt(
+    value: LLVMValueRef,
+    destType: LLVMTypeRef,
+    name: String = "ptr_to_int"
+): LLVMValueRef = LLVMBuildPtrToInt(this, value, destType, name)!!
 
 // ===== Control Flow =====
 
