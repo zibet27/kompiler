@@ -24,8 +24,7 @@ class KodeParser(
         }
 
         override fun trackTypeName(
-            rule: GrammarRule,
-            children: List<AstValue>
+            rule: GrammarRule, children: List<AstValue>
         ) {
             // Track ObjectHeader: object IDENT | object TYPENAME
             if (rule.lhs == KodeGrammar.NT.ObjectHeader && children.size == 2) {
@@ -76,9 +75,7 @@ class KodeParser(
             val table = generator.parsingTable
 
             // Save for next time
-            runCatching {
-                cache.save(table, grammarHash)
-            }.onFailure { println("Warning: Could not save parsing table: ${it.message}") }
+            cache.save(table, grammarHash)
 
             table
         }

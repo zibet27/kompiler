@@ -5,44 +5,48 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.writeString
 import parser.KodeParser
-import platform.posix.system
 
 class Kompiler {
+    private val outputDir = "build/out"
+
+    private fun executeCommand(command: String): Int {
+        val parts = command.split(" ")
+        return ProcessBuilder(*parts.toTypedArray())
+            .inheritIO()
+            .start()
+            .waitFor()
+    }
+
     fun compile(source: String) {
-        println("Parsing source code...")
+        java.io.File(outputDir).mkdirs()
         val parser = KodeParser()
         val programAst = parser.parse(source)
 
-        println("Checking types...")
         val typeErrors = TypeChecker(programAst).check()
         if (typeErrors.isNotEmpty()) {
             typeErrors.forEach { println(it) }
             return
         }
 
-        println("Generating LLVM IR...")
         val ir = Codegen.generate(programAst)
-        val irPath = Path("output.ll")
+        val irPath = Path("$outputDir/output.ll")
         SystemFileSystem.sink(irPath).buffered().use { sink ->
             sink.writeString(ir)
         }
 
         // Compile LLVM IR to WebAssembly
-        println("Generating WebAssembly object file...")
-        val objFileResult = system("llc -march=wasm32 -filetype=obj output.ll -o output.o")
+        val objFileResult = executeCommand("llc -march=wasm32 -filetype=obj $outputDir/output.ll -o $outputDir/output.o")
         if (objFileResult != 0) {
             error("Generating WebAssembly object file failed with exit code: $objFileResult")
         }
         // Compile alien runtime (C) to WebAssembly object using bare WASI imports (no libc)
-        println("Compiling Kode std to WebAssembly object...")
-        val alienObjResult = system(
-            "clang --target=wasm32-unknown-unknown -O2 -ffreestanding -fno-builtin -c src/runtime/alien_runtime.c -o alien.o"
+        val alienObjResult = executeCommand(
+            "clang --target=wasm32-unknown-unknown -O2 -ffreestanding -fno-builtin -c src/runtime/alien_runtime.c -o $outputDir/alien.o"
         )
         if (alienObjResult != 0) {
             error("Compiling alien runtime failed with exit code: $alienObjResult")
         }
-        println("Linking WebAssembly object file...")
-        val linkingResult = system("wasm-ld output.o alien.o -o output.wasm --export-all")
+        val linkingResult = executeCommand("wasm-ld $outputDir/output.o $outputDir/alien.o -o $outputDir/output.wasm --export-all")
         if (linkingResult != 0) {
             error("Linking WebAssembly object file failed with exit code: $linkingResult")
         }
@@ -50,8 +54,7 @@ class Kompiler {
 
     fun run(source: String) {
         compile(source)
-        println("Running WebAssembly executable...")
-        val runStatus = system("wasmtime ./output.wasm --invoke main")
+        val runStatus = executeCommand("wasmtime $outputDir/output.wasm --invoke main")
         if (runStatus != 0) {
             error("Running WebAssembly executable failed with exit code: $runStatus")
         }

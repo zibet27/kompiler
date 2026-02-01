@@ -75,7 +75,7 @@ class ParserTest {
 
     @Test
     fun alienFunctionDeclaration() {
-        val prog = parse("alien fun print_int{ x: i32 };")
+        val prog = parse("alien fun print_int{ x: i32 }: void;")
         assertEquals(1, prog.declarations.size)
         val alien = prog.declarations[0] as AlienFunDecl
         assertEquals("print_int", alien.name)
@@ -143,25 +143,25 @@ class ParserTest {
 
     @Test
     fun builtinTypes() {
-        parse("i32 a;")
-        parse("u8 b;")
-        parse("f64 c;")
-        parse("void ptr d;")
+        parse("i32 a = 0;")
+        parse("u8 b = 0;")
+        parse("f64 c = 0.0;")
+        parse("void ptr d = null;")
     }
 
     @Test
     fun pointerTypes() {
-        val prog = parse("i32 ptr p; i32 ptr ptr pp;")
-        assertEquals(2, prog.declarations.size)
-        val p1 = (prog.declarations[0] as GlobalVarDecl).type as PointerType
+        val prog = parse("i32 i = 0; i32 ptr p = &i; i32 ptr ptr pp = &p;")
+        assertEquals(3, prog.declarations.size)
+        val p1 = (prog.declarations[1] as GlobalVarDecl).type as PointerType
         assertEquals(1, p1.levels)
-        val p2 = (prog.declarations[1] as GlobalVarDecl).type as PointerType
+        val p2 = (prog.declarations[2] as GlobalVarDecl).type as PointerType
         assertEquals(2, p2.levels)
     }
 
     @Test
     fun namedTypes() {
-        val prog = parse("object Point; Point p;")
+        val prog = parse("object Point ( x: i32; ); Point p = Point { x: 0 };")
         val decl = prog.declarations[1] as GlobalVarDecl
         assertTrue(decl.type is NamedType)
         assertEquals("Point", decl.type.name)
@@ -305,7 +305,7 @@ class ParserTest {
 
     @Test
     fun arrayIndexing() {
-        val prog = parse("fun main{}: i32 ( i32 arr[5]; arr[0] = 1; );")
+        val prog = parse("fun main{}: i32 ( i32 arr[5] with 0; arr[0] = 1; );")
         val def = prog.declarations[0] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val assign = stmt.expr as Assign
@@ -314,7 +314,7 @@ class ParserTest {
 
     @Test
     fun memberAccess() {
-        val prog = parse("object Point ( x: i32; ); fun main{}: i32 ( Point p; p.x = 5; );")
+        val prog = parse("object Point ( x: i32; ); fun main{}: i32 ( Point p = Point { x: 0 }; p.x = 5; );")
         val def = prog.declarations[1] as FunDef
         val stmt = def.body.items[1] as ExprStmt
         val assign = stmt.expr as Assign
@@ -325,9 +325,9 @@ class ParserTest {
 
     @Test
     fun arrowMemberAccess() {
-        val prog = parse("object Point ( x: i32; ); fun main{}: i32 ( Point ptr p; p->x = 5; );")
+        val prog = parse("object Point ( x: i32; ); fun main{}: i32 ( Point pt = Point { x: 0 }; Point ptr p = &pt; p->x = 5; );")
         val def = prog.declarations[1] as FunDef
-        val stmt = def.body.items[1] as ExprStmt
+        val stmt = def.body.items[2] as ExprStmt
         val assign = stmt.expr as Assign
         val member = assign.target as Member
         assertTrue(member.viaArrow)
@@ -428,7 +428,7 @@ class ParserTest {
 
     @Test
     fun forLoopWithExprInit() {
-        parse("fun main{}: i32 ( i32 i; for { i = 0; i < 10; i++ } ( i; ); );")
+        parse("fun main{}: i32 ( i32 i = 0; for { i = 0; i < 10; i++ } ( i; ); );")
     }
 
     @Test
@@ -484,7 +484,7 @@ class ParserTest {
 
     @Test
     fun localVariableDeclaration() {
-        val prog = parse("fun main{}: i32 ( i32 a; );")
+        val prog = parse("fun main{}: i32 ( i32 a = 0; );")
         val def = prog.declarations[0] as FunDef
         val decl = def.body.items[0] as LocalVarDecl
         assertEquals("a", decl.declarators[0].name)
@@ -510,15 +510,15 @@ class ParserTest {
 
     @Test
     fun helloWorld() {
-        parse("alien fun print_string{ s: u8 ptr }; fun main{}: i32 ( print_string{ \"Hello, World!\" }; 0; );")
+        parse("alien fun print_string{ s: u8 ptr }: void; fun main{}: i32 ( print_string{ \"Hello, World!\" }; 0; );")
     }
 
     @Test
     fun variablesExample() {
         parse("""
-            alien fun print_int{ x: i32 };
+            alien fun print_int{ x: i32 }: void;
             i32 global_var = 10;
-            fun main{}: i32 ( i32 a; i32 b = 5; a = b * 2; print_int{ a }; 0; );
+            fun main{}: i32 ( i32 a = 0; i32 b = 5; a = b * 2; print_int{ a }; 0; );
         """.trimIndent())
     }
 
@@ -558,7 +558,7 @@ class ParserTest {
     fun structsExample() {
         val prog = parse("""
             object Point ( x: i32; y: i32; );
-            fun main{}: i32 ( Point p; p.x = 10; p.y = 20; 0; );
+            fun main{}: i32 ( Point p = Point { x: 0, y: 0 }; p.x = 10; p.y = 20; 0; );
         """.trimIndent())
 
         assertEquals(2, prog.declarations.size)
@@ -656,7 +656,7 @@ class ParserTest {
         val prog = parse("""
             fun add{ a: i32, b: i32 }: i32 ( a + b; );
             fun main{}: i32 (
-                i32 arr[5];
+                i32 arr[5] with 0;
                 i32 result = add{ 5 * 2, 10 / 2 } + { 15 % 7 };
                 arr[ add{ 1, 2 } ] = 42;
                 0;

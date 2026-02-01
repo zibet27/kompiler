@@ -5,33 +5,41 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/Kompiler.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/type/KodeType.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/type/TypeChecker.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesE2ETest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/Codegen.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/CodegenContext.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/junie.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/junie.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/0_empty.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/0_empty.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/10_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/10_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/13_void_pointers.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/13_void_pointers.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/15_nested_blocks.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/15_nested_blocks.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/9_structs.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/9_structs.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/AstVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/AstVisitor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/Type.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/TypeChecker.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/CodegenContext.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/CodegenContext.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/LlvmDsl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/LlvmDsl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesTypecheckTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesTypecheckTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/LexerTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/LexerTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeInterop/cinterop/llvm.def" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Kompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Ast.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/AstPrint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/AstValue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/AstVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/visitor/AstVisitor.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/CodegenContext.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/LlvmDsl.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/KodeGrammar.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/KodeParser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/ast/AstActions.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/Grammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/Grammar.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/GrammarDsl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/GrammarDsl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/LALRParserGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/LALRParserGenerator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/LR1Item.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/LR1Item.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/ParsingTableCache.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/ParsingTableCache.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/type/KodeType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/type/KodeType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/type/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/type/TypeChecker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesTypecheckTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesTypecheckTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/LexerTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/LexerTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ParserE2ETest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserGeneratorTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ParserGeneratorTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ParserTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +47,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="76" />
+    <option name="cachedIndexableFilesCount" value="83" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -127,27 +135,17 @@
     <setting file="jar://$USER_HOME$/.konan/kotlin-native-prebuilt-macos-aarch64-2.2.21/sources/kotlin-stdlib-native-sources.zip!/nativeMain/kotlinx/cinterop/Utils.kt" root0="SKIP_INSPECTION" />
     <setting file="jar://$PROJECT_DIR$/.kotlin/metadata/kotlinCInteropLibraries/kompiler-nativeCinterop-llvmMain-1.0-SNAPSHOT-EaBv6Q.klib!/default/linkdata/package_llvm/1_llvm.knm" root0="SKIP_INSPECTION" />
   </component>
-  <component name="KotlinMultiplatform" KONAN_HOME="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-aarch64-2.2.21">
-    <executable TARGET="macos_arm64" TARGET_NAME="native" EXECUTABLE_NAME="kompiler" PROJECT_PREFIX="kompiler:" IS_TEST="false">
-      <variant NAME="Debug" GRADLE_TASK=":linkDebugExecutableNative" FILE="$PROJECT_DIR$/build/bin/native/debugExecutable/kompiler.kexe" WORKING_DIR="$PROJECT_DIR$" PROGRAM_PARAMS="">
-        <envs />
-      </variant>
-      <variant NAME="Release" GRADLE_TASK=":linkReleaseExecutableNative" FILE="$PROJECT_DIR$/build/bin/native/releaseExecutable/kompiler.kexe" WORKING_DIR="$PROJECT_DIR$" PROGRAM_PARAMS="">
-        <envs />
-      </variant>
-    </executable>
-    <executable TARGET="macos_arm64" TARGET_NAME="native" EXECUTABLE_NAME="test" PROJECT_PREFIX="kompiler:" IS_TEST="true">
-      <variant NAME="Debug" GRADLE_TASK=":linkDebugTestNative" FILE="$PROJECT_DIR$/build/bin/native/debugTest/test.kexe" WORKING_DIR="" PROGRAM_PARAMS="">
-        <envs />
-      </variant>
-    </executable>
-  </component>
+  <component name="KotlinMultiplatform" KONAN_HOME="$USER_HOME$/.konan/kotlin-native-prebuilt-macos-aarch64-2.2.21" />
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
 }</component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="Tk0vk82F" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
@@ -162,8 +160,11 @@
     "Gradle.Build kompiler.executor": "Run",
     "Gradle.Building Kotlin artifacts for kompiler[native].executor": "Run",
     "Gradle.ExamplesE2ETest.executor": "Run",
+    "Gradle.ExamplesE2ETest.run all valid examples and verify output.executor": "Run",
     "Gradle.ExamplesTypecheckTest (1).executor": "Run",
     "Gradle.ExamplesTypecheckTest.executor": "Run",
+    "Gradle.LLVMTest (1).executor": "Run",
+    "Gradle.LLVMTest.executor": "Run",
     "Gradle.LexerTest.executor": "Run",
     "Gradle.ParserE2ETest (1).executor": "Run",
     "Gradle.ParserE2ETest.executor": "Run",
@@ -171,7 +172,9 @@
     "Gradle.ParserGeneratorTest.executor": "Run",
     "Gradle.ParserTest (1).executor": "Run",
     "Gradle.ParserTest.executor": "Run",
+    "Gradle.ParserTest.pointerTypes.executor": "Run",
     "Gradle.Tests in 'kompiler.nativeTest'.executor": "Run",
+    "Gradle.Tests in 'kompiler.test'.executor": "Run",
     "Gradle.kompiler [:MainKt.main()].executor": "Run",
     "Gradle.kompiler [cleanNativeDistributionCommonization].executor": "Run",
     "Gradle.kompiler [commonizeNativeDistribution].executor": "Run",
@@ -185,6 +188,7 @@
     "Internal Run Configuration.:runDebugExecutableNative.executor": "Debug",
     "Kotlin/Native Application.kompiler[native].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
@@ -212,6 +216,10 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecapSpentCounter">
+    <option name="endsOfQuotaMs" value="1770022800042" />
+    <option name="spentUsd" value="0.0173515" />
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -233,7 +241,7 @@
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.ExamplesE2ETest">
+  <component name="RunManager" selected="Gradle.LLVMTest (1)">
     <configuration default="true" type="AppleRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" IS_LOCATION_SIMULATION_SUPPORTED="false" IS_LOCATION_SIMULATION_ALLOWED="true" APPLICATION_LANGUAGE="IDELaunchSchemeLanguageUseSystemLanguage" APPLICATION_REGION="" DEVELOPMENT_TEAM="${TEAM_ID}" MAKE_ACTIVE="TRUE" SHOULD_DEBUG_EXTENSIONS="false">
       <embedded_app_extension_list />
       <method v="2">
@@ -251,9 +259,9 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
-            <option value="--tests &quot;test.ExamplesE2ETest&quot;" />
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;test.ExamplesE2ETest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -267,7 +275,7 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="ExamplesTypecheckTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="LLVMTest (1)" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -278,9 +286,9 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
-            <option value="--tests &quot;test.ExamplesTypecheckTest&quot;" />
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;LLVMTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -294,7 +302,7 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="LexerTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="LLVMTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -305,9 +313,9 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
-            <option value="--tests &quot;test.LexerTest&quot;" />
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;llvm.LLVMTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -332,9 +340,9 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value=":cleanNativeTest" />
-            <option value=":nativeTest" />
-            <option value="--tests &quot;test.ParserE2ETest&quot;" />
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;test.ParserE2ETest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -348,7 +356,7 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="runDebugExecutableNative" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="Tests in 'kompiler.test'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -359,7 +367,7 @@
         </option>
         <option name="taskNames">
           <list>
-            <option value="runDebugExecutableNative" />
+            <option value=":test" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -368,7 +376,7 @@
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>false</RunAsTest>
+      <RunAsTest>true</RunAsTest>
       <GradleProfilingDisabled>false</GradleProfilingDisabled>
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
@@ -417,28 +425,28 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Gradle.LLVMTest" />
+      <item itemvalue="Gradle.LLVMTest (1)" />
+      <item itemvalue="Gradle.Tests in 'kompiler.test'" />
       <item itemvalue="Gradle.ExamplesE2ETest" />
-      <item itemvalue="Gradle.ExamplesTypecheckTest (1)" />
-      <item itemvalue="Gradle.LexerTest" />
       <item itemvalue="Gradle.ParserE2ETest" />
-      <item itemvalue="Gradle.runDebugExecutableNative" />
       <item itemvalue="Kotlin/Native Application.kompiler[native]" />
       <item itemvalue="Kotlin/Native Application.KotlinNativeTemplate[native]" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.ExamplesE2ETest" />
-        <item itemvalue="Gradle.runDebugExecutableNative" />
-        <item itemvalue="Gradle.ExamplesTypecheckTest (1)" />
+        <item itemvalue="Gradle.LLVMTest (1)" />
         <item itemvalue="Gradle.ParserE2ETest" />
-        <item itemvalue="Gradle.LexerTest" />
+        <item itemvalue="Gradle.ExamplesE2ETest" />
+        <item itemvalue="Gradle.Tests in 'kompiler.test'" />
+        <item itemvalue="Gradle.LLVMTest" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-cffe25b9f5b3-intellij.indexing.shared.core-IU-253.28294.334" />
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
       </set>
     </attachedChunks>
   </component>
@@ -472,7 +480,9 @@
       <workItem from="1765116469518" duration="5411000" />
       <workItem from="1765453701174" duration="7722000" />
       <workItem from="1765463710605" duration="14000" />
-      <workItem from="1766839900011" duration="23644000" />
+      <workItem from="1766839900011" duration="27527000" />
+      <workItem from="1767609086851" duration="99000" />
+      <workItem from="1769951285116" duration="5484000" />
     </task>
     <servers />
   </component>

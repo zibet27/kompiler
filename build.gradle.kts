@@ -1,9 +1,10 @@
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
+    kotlin("jvm") version "2.3.0"
+    application
     alias(libs.plugins.kotlinxSerialization)
 }
 
-group = "org.pantuole"
+group = "cvut.fit"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -11,38 +12,12 @@ repositories {
 }
 
 kotlin {
-    val hostOs = System.getProperty("os.name")
-    val isArm64 = System.getProperty("os.arch") == "aarch64"
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" && isArm64 -> macosArm64("native")
-        hostOs == "Mac OS X" && !isArm64 -> macosX64("native")
-        hostOs == "Linux" && isArm64 -> linuxArm64("native")
-        hostOs == "Linux" && !isArm64 -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
+    jvmToolchain(24)
+}
 
-    nativeTarget.apply {
-        compilations.getByName("main") {
-            cinterops {
-                val llvm by creating
-            }
-        }
-        binaries {
-            executable {
-                entryPoint = "main"
-            }
-        }
-    }
+dependencies {
+    implementation(libs.kotlinxSerializationJson)
+    implementation(libs.kotlinxIoCore)
 
-    sourceSets {
-        nativeMain.dependencies {
-            implementation(libs.kotlinxSerializationJson)
-            implementation(libs.kotlinxIoCore)
-        }
-        nativeTest.dependencies {
-            implementation(kotlin("test"))
-        }
-    }
+    testImplementation(kotlin("test"))
 }

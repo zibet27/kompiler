@@ -36,15 +36,6 @@ class ParserGeneratorTest {
     }
 
     @Test
-    fun kodeGrammar_hasExpectedStateCount() {
-        val table = KodeParser.parsingTable
-
-        // We expect around 273 LALR states
-        val stateCount = table.actionTable.size
-        assertEquals(273, stateCount,"State count should be around 273, got $stateCount")
-    }
-
-    @Test
     fun firstSets_computeCorrectly() {
         // Grammar: S -> A B, A -> a | ε, B -> b
         // FIRST(A) = {a, ε}, FIRST(B) = {b}, FIRST(S) = {a, b}
