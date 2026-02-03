@@ -35,9 +35,9 @@ class Codegen : CodegenContext(), AstVisitor<IRValue?> {
         // Declare prototypes for functions and globals
         for (it in node.declarations) {
             when (it) {
-                is FunDecl -> ensureFunction(it.name, it.params, it.kodeType!!, alien = false)
-                is FunDef -> ensureFunction(it.name, it.params, it.kodeType!!, alien = false)
-                is AlienFunDecl -> ensureFunction(it.name, it.params, it.kodeType!!, alien = true)
+                is FunDecl -> ensureFunction(it.name, it.params, it.kodeType, alien = false)
+                is FunDef -> ensureFunction(it.name, it.params, it.kodeType, alien = false)
+                is AlienFunDecl -> ensureFunction(it.name, it.params, it.kodeType, alien = true)
                 is GlobalVarDecl -> it.declarators.forEach { d ->
                     addGlobal(d.name, d.kodeType!!)
                 }
@@ -61,7 +61,7 @@ class Codegen : CodegenContext(), AstVisitor<IRValue?> {
         builder.positionAtEnd(entry)
 
         withScope {
-            val kodeType = node.kodeType!!
+            val kodeType = node.kodeType
             val kodeParamTypes = kodeType.params
             node.params.forEachIndexed { i, p ->
                 val paramType = kodeParamTypes[i]
@@ -552,16 +552,18 @@ class Codegen : CodegenContext(), AstVisitor<IRValue?> {
         val cur = builder.buildLoad(symbol.type.toIR(), symbol.value)
         val one = if (cur.type.isFloatLike) 1.0.f64() else 1.i32()
         val newVal = if (isIncrement) {
-            if (cur.type.isFloatLike) builder.buildFAdd(cur, one) else builder.buildAdd(cur, one)
+            if (cur.type.isFloatLike) builder.buildFAdd(cur, one)
+            else builder.buildAdd(cur, one)
         } else {
-            if (cur.type.isFloatLike) builder.buildFSub(cur, one) else builder.buildSub(cur, one)
+            if (cur.type.isFloatLike) builder.buildFSub(cur, one)
+            else builder.buildSub(cur, one)
         }
         builder.buildStore(newVal, symbol.value)
         return if (isPrefix) newVal else cur
     }
 
-    override fun visit(node: PostfixInc) = buildIncDec(node.target, true, false)
-    override fun visit(node: PostfixDec) = buildIncDec(node.target, false, false)
+    override fun visit(node: PostfixInc) = buildIncDec(node.target, isIncrement = true, isPrefix = false)
+    override fun visit(node: PostfixDec) = buildIncDec(node.target, isIncrement = false, isPrefix = false)
 
     override fun visit(node: StructInit): IRValue {
         val structType = getStructType(node.typeName)!!

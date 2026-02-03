@@ -12,7 +12,7 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(24)
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -20,4 +20,8 @@ dependencies {
     implementation(libs.kotlinxIoCore)
 
     testImplementation(kotlin("test"))
+}
+
+application {
+    mainClass.set("MainKt")
 }
