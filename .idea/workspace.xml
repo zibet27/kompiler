@@ -5,15 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/RelooperTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/7_loops.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/7_loops.kode" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Ast.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/Codegen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/Codegen.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/IR.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/IR.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/InstructionEmitter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/InstructionEmitter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/LocalsManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/LocalsManager.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/PhiResolver.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/PhiResolver.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmBackend.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmBackend.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmEmitter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmEmitter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmTypes.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmTypes.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -176,7 +175,7 @@
     "cidr.known.project.marker": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForEAPUsers.v1": "true",
-    "git-widget-placeholder": "wasm-backend-claude",
+    "git-widget-placeholder": "main",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/oleh.pantus/Documents/uni/kompiler",
@@ -222,7 +221,7 @@
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.RelooperTest (1)">
+  <component name="RunManager" selected="Gradle.ExamplesE2ETest">
     <configuration default="true" type="Application" factoryName="Application">
       <method v="2">
         <option name="Make" enabled="true" />
@@ -369,8 +368,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.RelooperTest (1)" />
         <item itemvalue="Gradle.ExamplesE2ETest" />
+        <item itemvalue="Gradle.RelooperTest (1)" />
         <item itemvalue="Gradle.ExamplesE2ETest" />
         <item itemvalue="Gradle.RelooperTest" />
         <item itemvalue="Kotlin.WasmBackendKt" />

@@ -490,12 +490,12 @@ class InstructionEmitter(
      * Get the type index for a function signature.
      */
     private fun getTypeIndexForCall(funcType: IRType.Function): Int {
-        val wasmFuncType = WasmFuncType.fromIRFunction(
+        val wasmFuncType = WasmFuncType.from(
             funcType.returnType,
             funcType.parameterTypes
         )
         return typeIndexMap[wasmFuncType]
-            ?: error("Function type ${funcType} not found in type index map")
+            ?: error("Function type $funcType not found in type index map")
     }
 
     private fun emitICmp(inst: IRInstruction.ICmp) {
@@ -608,20 +608,5 @@ class InstructionEmitter(
         emitValue(phiCopy.sourceValue)
         emitter.writeByte(WasmOp.LOCAL_SET)
         emitter.writeU32Leb(phiCopy.destinationLocal)
-    }
-
-    /**
-     * Get the function index for a given function value.
-     * This requires a mapping from IRFunction to function index.
-     */
-    private fun getFunctionIndex(functionValue: IRValue): Int {
-        return when (functionValue) {
-            is IRFunction -> {
-                functionIndexMap[functionValue]
-                    ?: error("Function ${functionValue.name} not found in index map")
-            }
-
-            else -> error("Cannot get function index for ${functionValue.ref()}")
-        }
     }
 }

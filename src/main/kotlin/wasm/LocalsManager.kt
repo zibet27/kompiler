@@ -28,7 +28,7 @@ class LocalsManager(private val function: IRFunction) {
         // First, allocate locals for function parameters
         // In Wasm, parameters are locals 0, 1, 2, ...
         for (param in function.parameters) {
-            val wasmType = WasmValType.fromIRType(param.type)
+            val wasmType = WasmValType.from(param.type)
             allocateLocal(param, wasmType)
         }
     }
@@ -49,12 +49,7 @@ class LocalsManager(private val function: IRFunction) {
      */
     fun getOrAllocateLocal(value: IRValue): Int {
         return valueToLocal[value] ?: run {
-            val wasmType = try {
-                WasmValType.fromIRType(value.type)
-            } catch (e: Exception) {
-                // Fallback for void or unsupported types
-                error("Cannot allocate local for value ${value.ref()} with type ${value.type}: ${e.message}")
-            }
+            val wasmType = WasmValType.from(value.type)
             allocateLocal(value, wasmType)
         }
     }
@@ -73,28 +68,6 @@ class LocalsManager(private val function: IRFunction) {
     fun hasLocal(value: IRValue): Boolean {
         return value in valueToLocal
     }
-
-    /**
-     * Get the type of a local by index
-     */
-    fun getLocalType(index: Int): WasmValType {
-        return localTypes[index]
-    }
-
-    /**
-     * Get the total number of locals (including parameters)
-     */
-    fun getTotalLocals(): Int = nextLocalIndex
-
-    /**
-     * Get the number of parameters
-     */
-    fun getNumParams(): Int = function.parameters.size
-
-    /**
-     * Get the number of local variables (excluding parameters)
-     */
-    fun getNumLocalVars(): Int = nextLocalIndex - function.parameters.size
 
     /**
      * Get the local variables (excluding parameters) grouped by type.
@@ -143,32 +116,9 @@ class LocalsManager(private val function: IRFunction) {
                 if (hasLocal(instruction)) continue
 
                 // Allocate a local for this instruction's result
-                try {
-                    val wasmType = WasmValType.fromIRType(instruction.type)
-                    allocateLocal(instruction, wasmType)
-                } catch (e: Exception) {
-                    // Skip if we can't convert the type (e.g., unsupported types)
-                    // These will cause errors later if actually used
-                }
+                val wasmType = WasmValType.from(instruction.type)
+                allocateLocal(instruction, wasmType)
             }
-        }
-    }
-
-    /**
-     * Debug: dump all local allocations
-     */
-    fun dump(): String = buildString {
-        appendLine("LocalsManager for ${function.name}:")
-        appendLine("  Parameters: ${getNumParams()}")
-        appendLine("  Local vars: ${getNumLocalVars()}")
-        appendLine("  Total: ${getTotalLocals()}")
-        appendLine("  Mappings:")
-        for ((value, index) in valueToLocal.entries.sortedBy { it.value }) {
-            appendLine("    local.$index : ${localTypes[index]} = ${value.ref()}")
-        }
-        appendLine("  Grouped local vars:")
-        for ((count, type) in getLocalVarsByType()) {
-            appendLine("    $count x $type")
         }
     }
 }

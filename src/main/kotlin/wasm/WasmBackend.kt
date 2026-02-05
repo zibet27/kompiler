@@ -32,13 +32,13 @@ class WasmBackend {
     fun compile(module: IRModule): ByteArray {
         return buildWasmModule {
             // Type Section: Define all function signatures
-            val typeSection = buildTypeSection(module)
+            val typeSection = module.buildTypeSection()
             writeSection(WasmSection.TYPE) {
                 writeBytes(typeSection)
             }
 
             // Import Section: Import external functions
-            val imports = buildImportSection(module)
+            val imports = module.buildImportSection()
             if (imports.isNotEmpty()) {
                 writeSection(WasmSection.IMPORT) {
                     writeVector(imports) { import ->
@@ -51,7 +51,7 @@ class WasmBackend {
             }
 
             // Function Section: Declare function type indices
-            val functionIndices = buildFunctionSection(module)
+            val functionIndices = module.buildFunctionSection()
             writeSection(WasmSection.FUNCTION) {
                 writeVector(functionIndices) { idx -> writeU32Leb(idx) }
             }
@@ -97,7 +97,7 @@ class WasmBackend {
             }
 
             // Code Section: Function bodies (uses globalAddressMap)
-            val codeBodies = buildCodeSection(module)
+            val codeBodies = module.buildCodeSection()
             writeSection(WasmSection.CODE) {
                 writeVector(codeBodies) { body ->
                     writeBytes(body)
@@ -115,76 +115,54 @@ class WasmBackend {
         }
     }
 
+    private fun IRFunction.wasmType(): WasmFuncType {
+        return WasmFuncType.from(returnType, paramTypes = parameters.map { it.type })
+    }
+
     /**
      * Build the Type section containing all function signatures
      */
-    private fun buildTypeSection(module: IRModule): ByteArray {
-        val types = mutableListOf<WasmFuncType>()
-
+    private fun IRModule.buildTypeSection(): ByteArray {
         // Collect unique function types and populate typeIndexMap
-        for (function in module.functions) {
-            val funcType = WasmFuncType.fromIRFunction(
-                function.returnType,
-                function.parameters.map { it.type }
-            )
-            if (funcType !in typeIndexMap) {
-                typeIndexMap[funcType] = types.size
-                types.add(funcType)
+        val types = buildList {
+            for (function in functions) {
+                val funcType = function.wasmType()
+                if (funcType !in typeIndexMap) {
+                    typeIndexMap[funcType] = size
+                    add(funcType)
+                }
             }
         }
-
-        // Encode types
-        val emitter = WasmEmitter()
-        emitter.writeVector(types) { type ->
-            type.encode(this)
+        return emitWasm {
+            writeVector(types) { type -> type.encode(emitter = this) }
         }
-        return emitter.toByteArray()
     }
 
     /**
      * Build the Function section with type indices
      */
-    private fun buildFunctionSection(module: IRModule): List<Int> {
-        val functionIndices = mutableListOf<Int>()
-
+    private fun IRModule.buildFunctionSection() = buildList {
         // Map each function to its type index (typeIndexMap already populated by buildTypeSection)
-        for (function in module.functions) {
-            if (!function.isExternal) {
-                val funcType = WasmFuncType.fromIRFunction(
-                    function.returnType,
-                    function.parameters.map { it.type }
-                )
-                functionIndices.add(typeIndexMap[funcType]!!)
-            }
+        for (function in functions) {
+            if (function.isExternal) continue
+            add(typeIndexMap[function.wasmType()]!!)
         }
-
-        return functionIndices
     }
 
     /**
      * Build the Import section for external functions
      */
-    private fun buildImportSection(module: IRModule): List<WasmImport> {
-        val imports = mutableListOf<WasmImport>()
-
+    private fun IRModule.buildImportSection(): List<WasmImport> = buildList {
         // Import external functions (typeIndexMap already populated by buildTypeSection)
-        for (function in module.functions) {
-            if (function.isExternal) {
-                val funcType = WasmFuncType.fromIRFunction(
-                    function.returnType,
-                    function.parameters.map { it.type }
-                )
-                imports.add(
-                    WasmImport(
-                        moduleName = "env",  // Standard module name for imports
-                        name = function.name,
-                        typeIndex = typeIndexMap[funcType]!!
-                    )
-                )
-            }
+        for (function in functions) {
+            if (!function.isExternal) continue
+            val import = WasmImport(
+                moduleName = "env",  // Standard module name for imports
+                name = function.name,
+                typeIndex = typeIndexMap[function.wasmType()]!!
+            )
+            add(import)
         }
-
-        return imports
     }
 
     /**
@@ -193,7 +171,7 @@ class WasmBackend {
     private fun buildExportSection(module: IRModule): List<WasmExport> {
         val exports = mutableListOf<WasmExport>()
 
-        // Count external functions (they come first in function index space)
+        // Count external functions (they come first in the function index space)
         val numImports = module.functions.count { it.isExternal }
 
         // Export all non-external functions
@@ -238,18 +216,19 @@ class WasmBackend {
                 val strConst = global.initializer as IRStringConstant
                 val strBytes = strConst.value.toByteArray(Charsets.UTF_8) + 0 // null-terminated
 
-                val emitter = WasmEmitter()
-                // Mode 0: active segment with memory index
-                emitter.writeByte(0x00)
-                // Offset expression: i32.const <offset>
-                emitter.writeByte(0x41) // i32.const
-                emitter.writeS32Leb(memoryOffset)
-                emitter.writeByte(0x0B) // end
-                // Data bytes
-                emitter.writeU32Leb(strBytes.size)
-                emitter.writeBytes(strBytes)
+                val dataSegment = emitWasm {
+                    // Mode 0: active segment with memory index
+                    writeByte(0x00)
+                    // Offset expression: i32.const <offset>
+                    writeByte(0x41) // i32.const
+                    writeS32Leb(memoryOffset)
+                    writeByte(0x0B) // end
+                    // Data bytes
+                    writeU32Leb(strBytes.size)
+                    writeBytes(strBytes)
+                }
 
-                dataSegments.add(emitter.toByteArray())
+                dataSegments.add(dataSegment)
                 memoryOffset += strBytes.size
             }
         }
@@ -269,30 +248,27 @@ class WasmBackend {
 
         // Add all functions (imports first, then defined functions)
         for (func in module.functions) {
-            if (func.isExternal) {
-                functionIndices.add(index++)
-            }
+            if (!func.isExternal) continue
+            functionIndices.add(index++)
         }
         for (func in module.functions) {
-            if (!func.isExternal) {
-                functionIndices.add(index++)
-            }
+            if (func.isExternal) continue
+            functionIndices.add(index++)
         }
 
         if (functionIndices.isNotEmpty()) {
-            val emitter = WasmEmitter()
-            // Mode 0: active segment with table index 0
-            emitter.writeByte(0x00)
-            // Offset expression: i32.const 0 (start at index 0)
-            emitter.writeByte(0x41) // i32.const
-            emitter.writeS32Leb(0)
-            emitter.writeByte(0x0B) // end
-            // Function indices vector
-            emitter.writeVector(functionIndices) { funcIndex ->
-                writeU32Leb(funcIndex)
-            }
-
-            elements.add(emitter.toByteArray())
+            emitWasm {
+                // Mode 0: active segment with table index 0
+                writeByte(0x00)
+                // Offset expression: i32.const 0 (start at index 0)
+                writeByte(0x41) // i32.const
+                writeS32Leb(0)
+                writeByte(0x0B) // end
+                // Function indices vector
+                writeVector(functionIndices) { funcIndex ->
+                    writeU32Leb(funcIndex)
+                }
+            }.also { elements.add(it) }
         }
 
         return elements
@@ -301,44 +277,30 @@ class WasmBackend {
     /**
      * Build the Code section with function bodies
      */
-    private fun buildCodeSection(module: IRModule): List<ByteArray> {
-        val codeBodies = mutableListOf<ByteArray>()
-
-        // Calculate stack frame sizes for each function
-        val stackFrameSizes = mutableMapOf<IRFunction, Int>()
-        for (function in module.functions) {
-            if (!function.isExternal) {
-                stackFrameSizes[function] = calculateStackFrameSize(function)
-            }
-        }
-
+    private fun IRModule.buildCodeSection(): List<ByteArray> {
         // Assign non-overlapping stack frames starting after globals
         var stackOffset = 1024
-        val stackFrameStarts = mutableMapOf<IRFunction, Int>()
-        for (function in module.functions) {
-            if (!function.isExternal) {
-                stackFrameStarts[function] = stackOffset
-                stackOffset += stackFrameSizes[function]!!
+        val stackFrameStarts = buildMap {
+            for (function in functions) {
+                if (function.isExternal) continue
+                set(function, stackOffset)
+                stackOffset += function.stackFrameSize()
             }
         }
 
-        for (function in module.functions) {
-            if (!function.isExternal) {
-                val stackFrameStart = stackFrameStarts[function]!!
-                val body = compileFunctionBody(function, module, stackFrameStart)
-                codeBodies.add(body)
-            }
+        return functions.mapNotNull {
+            if (it.isExternal) return@mapNotNull null
+            val stackFrameStart = stackFrameStarts[it]!!
+            it.compileFunctionBody(module = this, stackFrameStart)
         }
-
-        return codeBodies
     }
 
     /**
      * Calculate the stack frame size needed for a function's allocas
      */
-    private fun calculateStackFrameSize(function: IRFunction): Int {
+    private fun IRFunction.stackFrameSize(): Int {
         var size = 0
-        for (block in function.basicBlocks) {
+        for (block in basicBlocks) {
             for (instruction in block.instructions) {
                 if (instruction is IRInstruction.Alloca) {
                     val allocaSize = when (val type = instruction.allocatedType) {
@@ -346,15 +308,11 @@ class WasmBackend {
                         is IRType.Float -> 4
                         is IRType.Double -> 8
                         is IRType.Pointer -> 4
-                        is IRType.Array -> {
-                            val elementSize = calculateTypeSize(type.elementType)
-                            type.size * elementSize
-                        }
-
-                        is IRType.Struct -> calculateStructSize(type)
+                        is IRType.Array -> type.size * type.elementType.calculateSize()
+                        is IRType.Struct -> type.calculateSize()
                         else -> 0
                     }
-                    // Align to 4-byte boundary
+                    // Align to the 4-byte boundary
                     val alignedSize = (allocaSize + 3) and 3.inv()
                     size += alignedSize
                 }
@@ -363,26 +321,22 @@ class WasmBackend {
         return size
     }
 
-    private fun calculateTypeSize(type: IRType): Int {
-        return when (type) {
-            is IRType.Int -> (type.bits + 7) / 8
+    private fun IRType.calculateSize(): Int {
+        return when (this) {
+            is IRType.Int -> (bits + 7) / 8
             is IRType.Float -> 4
             is IRType.Double -> 8
             is IRType.Pointer -> 4
-            is IRType.Array -> {
-                val elementSize = calculateTypeSize(type.elementType)
-                type.size * elementSize
-            }
-
-            is IRType.Struct -> calculateStructSize(type)
+            is IRType.Array -> size * elementType.calculateSize()
+            is IRType.Struct -> this.calculateSize()
             else -> 0
         }
     }
 
-    private fun calculateStructSize(structType: IRType.Struct): Int {
+    private fun IRType.Struct.calculateSize(): Int {
         var size = 0
-        for (elementType in structType.elementTypes) {
-            size += calculateTypeSize(elementType)
+        for (elementType in elementTypes) {
+            size += elementType.calculateSize()
         }
         return size
     }
@@ -390,7 +344,7 @@ class WasmBackend {
     /**
      * Compile a single function body
      */
-    private fun compileFunctionBody(function: IRFunction, module: IRModule, stackFrameStart: Int): ByteArray {
+    private fun IRFunction.compileFunctionBody(module: IRModule, stackFrameStart: Int): ByteArray {
         // Build function index map - imports come first, then defined functions
         val functionIndexMap = mutableMapOf<IRFunction, Int>()
         var index = 0
@@ -411,14 +365,14 @@ class WasmBackend {
 
         // Step 0: Reorder basic blocks for better CFG layout
         val reorderer = IRReorderBlocks()
-        reorderer.reorder(function)
+        reorderer.reorder(function = this)
 
         // Step 1: Allocate locals
-        val localsManager = LocalsManager(function)
+        val localsManager = LocalsManager(function = this)
         localsManager.analyzeAndAllocateLocals()
 
         // Step 2: Resolve PHI nodes
-        val phiResolver = PhiResolver(function, localsManager)
+        val phiResolver = PhiResolver(function = this, localsManager)
         phiResolver.resolve()
 
         // Step 3: Generate code
@@ -440,7 +394,7 @@ class WasmBackend {
             typeIndexMap,
             stackFrameStart
         )
-        val relooper = Relooper(function, bodyEmitter, instructionEmitter, phiResolver)
+        val relooper = Relooper(function = this, bodyEmitter, instructionEmitter, phiResolver)
         relooper.reloop()
 
         // Encode function body with size prefix

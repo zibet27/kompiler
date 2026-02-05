@@ -5,7 +5,7 @@ import llvm.*
 /**
  * Resolves PHI nodes by inserting copies at the end of predecessor blocks.
  *
- * LLVM IR uses PHI nodes for SSA form at control flow merge points:
+ * LLVM IR uses PHI nodes for an SSA form at control flow merge points:
  *   %result = phi i32 [ %value1, %block1 ], [ %value2, %block2 ]
  *
  * WebAssembly doesn't have PHI nodes. Instead, we need to:
@@ -85,7 +85,6 @@ class PhiResolver(
         incomingValue: IRValue,
         destinationLocal: Int
     ) {
-        // Store phi copy in our separate map instead of modifying instructions list
         val phiCopy = PhiCopy(incomingValue, destinationLocal)
         blockPhiCopies.getOrPut(block) { mutableListOf() }.add(phiCopy)
     }
@@ -98,29 +97,5 @@ class PhiResolver(
     data class PhiCopy(
         val sourceValue: IRValue,
         val destinationLocal: Int
-    ) {
-        override fun toString() = "phi_copy local.$destinationLocal = ${sourceValue.ref()}"
-    }
-}
-
-/**
- * Helper to detect if a basic block contains PHI nodes
- */
-fun IRBasicBlock.hasPhiNodes(): Boolean {
-    return instructions.any { it is IRInstruction.Phi }
-}
-
-/**
- * Helper to get all PHI nodes in a basic block
- */
-fun IRBasicBlock.getPhiNodes(): List<IRInstruction.Phi> {
-    return instructions.filterIsInstance<IRInstruction.Phi>()
-}
-
-/**
- * Helper to get non-PHI instructions in a basic block.
- * In LLVM IR, PHI nodes must appear at the beginning of a block.
- */
-fun IRBasicBlock.getNonPhiInstructions(): List<IRInstruction> {
-    return instructions.filterNot { it is IRInstruction.Phi }
+    )
 }

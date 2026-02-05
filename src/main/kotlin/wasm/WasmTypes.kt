@@ -18,7 +18,7 @@ enum class WasmValType(val code: Int) {
         /**
          * Convert LLVM IR type to Wasm value type
          */
-        fun fromIRType(type: IRType): WasmValType {
+        fun from(type: IRType): WasmValType {
             return when (type) {
                 is IRType.Int -> when {
                     type.bits <= 32 -> I32
@@ -68,12 +68,12 @@ data class WasmFuncType(
     }
 
     companion object {
-        fun fromIRFunction(returnType: IRType, paramTypes: List<IRType>): WasmFuncType {
-            val params = paramTypes.map { WasmValType.fromIRType(it) }
+        fun from(returnType: IRType, paramTypes: List<IRType>): WasmFuncType {
+            val params = paramTypes.map { WasmValType.from(it) }
             val results = if (returnType is IRType.Void) {
                 emptyList()
             } else {
-                listOf(WasmValType.fromIRType(returnType))
+                listOf(WasmValType.from(returnType))
             }
             return WasmFuncType(params, results)
         }

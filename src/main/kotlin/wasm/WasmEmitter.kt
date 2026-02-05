@@ -46,21 +46,6 @@ class WasmEmitter {
     }
 
     /**
-     * Write an unsigned 64-bit long in LEB128 format
-     */
-    fun writeU64Leb(value: Long) {
-        var v = value
-        do {
-            var byte = (v and 0x7FL).toInt()
-            v = v ushr 7
-            if (v != 0L) {
-                byte = byte or 0x80
-            }
-            writeByte(byte)
-        } while (v != 0L)
-    }
-
-    /**
      * Write a signed 32-bit integer in LEB128 format
      */
     fun writeS32Leb(value: Int) {
@@ -121,7 +106,7 @@ class WasmEmitter {
     }
 
     /**
-     * Write a UTF-8 encoded string with length prefix
+     * Write a UTF-8 encoded string with a length prefix
      */
     fun writeString(value: String) {
         val bytes = value.toByteArray(Charsets.UTF_8)
@@ -179,6 +164,12 @@ class WasmEmitter {
         writeByte(0x00)
         writeByte(0x00)
     }
+}
+
+inline fun emitWasm(crossinline builder: WasmEmitter.() -> Unit): ByteArray {
+    val emitter = WasmEmitter()
+    emitter.builder()
+    return emitter.toByteArray()
 }
 
 /**

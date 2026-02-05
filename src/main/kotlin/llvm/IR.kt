@@ -13,8 +13,6 @@ class IRModule(val name: String) : IRVisitable {
     val namedStructs = mutableListOf<IRType.Struct>()
 
     override fun <R> accept(visitor: IRVisitor<R>): R = visitor.visitModule(this)
-
-    fun dump(): String = IRPrinter().print(this)
 }
 
 class IRFunction(
@@ -30,13 +28,6 @@ class IRFunction(
     val basicBlocks = mutableListOf<IRBasicBlock>()
 
     override fun ref() = "@$name"
-
-    fun dump(): String {
-        val printer = IRPrinter()
-        val module = IRModule("temp")
-        module.functions.add(this)
-        return printer.print(module).trim()
-    }
 }
 
 class IRArgument(override val type: IRType, override val name: String) : IRValue {
@@ -54,8 +45,6 @@ class IRBasicBlock(val name: String) : IRVisitable {
         get() = instructions.lastOrNull()?.let {
             if (it is IRInstruction.Ret || it is IRInstruction.Br || it is IRInstruction.CondBr) it else null
         }
-
-    fun dump(): String = IRPrinter().print(this).trim()
 }
 
 class IRGlobalVariable(
@@ -67,8 +56,6 @@ class IRGlobalVariable(
     override val type: IRType get() = IRType.Pointer(contentType)
     override fun ref() = "@$name"
     override fun <R> accept(visitor: IRVisitor<R>): R = visitor.visitGlobalVariable(this)
-
-    fun dump(): String = IRPrinter().print(this).trim()
 }
 
 sealed class IRConstant(override val type: IRType) : IRValue {
@@ -85,6 +72,7 @@ class IRFloatConstant(val value: Double, type: IRType) : IRConstant(type) {
         // LLVM expects hex representation for doubles sometimes, but let's start with a simple string
         return value.toString()
     }
+
     override fun <R> accept(visitor: IRVisitor<R>): R = visitor.visitFloatConstant(this)
 }
 
