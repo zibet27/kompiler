@@ -1,28 +1,20 @@
-import type.TypeChecker
 import codegen.Codegen
-import kotlinx.io.buffered
-import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
-import kotlinx.io.writeString
-import parser.KodeParser
-import wasm.WasmBackend
 import llvm.IRModule
-import llvm.IRPrinter
 import llvm.opt.pass.InliningPass
 import llvm.opt.pass.Mem2RegPass
 import llvm.opt.pass.PassManager
+import parser.KodeParser
+import type.TypeChecker
+import wasm.WasmBackend
 import java.io.File
 
-class Kompiler {
-    private val outputDir = "build/out"
+fun String.filename() = substringAfterLast(delimiter = "/").substringBeforeLast(delimiter = ".")
 
-    private fun executeCommand(command: String): Int {
-        val parts = command.split(" ")
-        return ProcessBuilder(*parts.toTypedArray())
-            .inheritIO()
-            .start()
-            .waitFor()
-    }
+fun String.extension() = substringAfterLast(delimiter = ".")
+
+class Kompiler(moduleName: String) {
+    private val outputDir = "build/out"
+    private val outputPath = "$outputDir/${moduleName}.wasm"
 
     fun compile(source: String) {
         File(outputDir).mkdirs()
@@ -42,28 +34,23 @@ class Kompiler {
 
         // Run LLVM IR optimizations
         val passManager = PassManager()
-        // Note: Mem2Reg disabled - has bugs with complex nested if-else-if patterns
-        // passManager.add(Mem2RegPass())  // TODO: Fix for nested control flow
+        passManager.add(Mem2RegPass())
         passManager.add(InliningPass())
         passManager.runOnModule(irModule)
 
-        // Write LLVM IR text (for debugging)
-        val irText = IRPrinter().print(irModule)
-        val irPath = Path("$outputDir/output.ll")
-        SystemFileSystem.sink(irPath).buffered().use { sink ->
-            sink.writeString(irText)
-        }
-
         // Compile to WebAssembly using pure Kotlin backend
         val wasmBytes = WasmBackend().compile(irModule)
-        File("$outputDir/output.wasm").writeBytes(wasmBytes)
-
-        println("Compiled to WebAssembly: $outputDir/output.wasm (${wasmBytes.size} bytes)")
+        File(outputPath).writeBytes(wasmBytes)
     }
 
     fun run(source: String) {
         compile(source)
-        val runStatus = executeCommand("wasmtime $outputDir/output.wasm --invoke main")
+
+        val runStatus = ProcessBuilder("node", "test_runner.js", outputPath)
+            .inheritIO()
+            .start()
+            .waitFor()
+
         if (runStatus != 0) {
             error("Running WebAssembly executable failed with exit code: $runStatus")
         }

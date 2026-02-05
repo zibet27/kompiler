@@ -3,20 +3,7 @@ package llvm.opt.analysis
 import llvm.*
 
 /**
- * Use-Definition chain analysis.
- * 
- * Tracks where values are defined and where they are used.
- */
-class UseDefAnalysis : FunctionAnalysis<UseDefInfo> {
-    override val name = "use-def"
-
-    override fun analyze(target: IRFunction): UseDefInfo {
-        return UseDefInfo.compute(target)
-    }
-}
-
-/**
- * Information about a use of a value.
+ * Information about the use of a value.
  */
 data class UseInfo(
     /** The instruction that uses the value */
@@ -43,33 +30,11 @@ class UseDefInfo private constructor(
     }
 
     /**
-     * Get the number of uses of a value.
-     */
-    fun useCount(value: IRValue): Int {
-        return usesMap[value]?.size ?: 0
-    }
-
-    /**
-     * Check if a value is used.
-     */
-    fun isUsed(value: IRValue): Boolean {
-        return (usesMap[value]?.size ?: 0) > 0
-    }
-
-    /**
      * Get the block where a value is defined.
      * Returns null for function arguments and constants.
      */
     fun getDefBlock(value: IRValue): IRBasicBlock? {
         return defBlockMap[value]
-    }
-
-    /**
-     * Check if a value is only used in a single block.
-     */
-    fun isLocalToBlock(value: IRValue, block: IRBasicBlock): Boolean {
-        val uses = usesMap[value] ?: return true
-        return uses.all { it.block == block }
     }
 
     companion object {

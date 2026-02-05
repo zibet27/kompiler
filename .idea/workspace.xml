@@ -5,18 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/AnalysisPass.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/CFGAnalysis.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/DominanceAnalysis.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/SideEffectAnalysis.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/UseDefAnalysis.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/InliningPass.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/Mem2RegPass.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/PassManager.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/util/IRCloner.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/OptimizationTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/UseDefAnalysis.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/UseDefAnalysis.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/InliningPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/InliningPass.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/Mem2RegPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/Mem2RegPass.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/Relooper.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/Relooper.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,7 +20,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="113" />
+    <option name="cachedIndexableFilesCount" value="125" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -54,19 +50,7 @@
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="kompiler" type="f1a62948:ProjectNode" />
                 <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="kompiler" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="interop" type="c8890929:TasksNode$1" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="kompiler" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="run" type="c8890929:TasksNode$1" />
+                <item name="application" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -225,7 +209,7 @@
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.ExamplesE2ETest">
+  <component name="RunManager" selected="Gradle.Tests in 'kompiler.test'">
     <configuration default="true" type="Application" factoryName="Application">
       <method v="2">
         <option name="Make" enabled="true" />
@@ -285,33 +269,6 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="RelooperTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-            <option value="--tests" />
-            <option value="&quot;wasm.RelooperTest&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
-      <method v="2" />
-    </configuration>
     <configuration name="Tests in 'kompiler.test'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -336,6 +293,15 @@
       <GradleProfilingDisabled>false</GradleProfilingDisabled>
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
+    </configuration>
+    <configuration name="MainKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="MainKt" />
+      <module name="kompiler.main" />
+      <option name="PROGRAM_PARAMETERS" value="examples/6_if_else.kode --run" />
+      <shortenClasspath name="NONE" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
     </configuration>
     <configuration name="WasmBackendKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="wasm.WasmBackendKt" />
@@ -391,18 +357,18 @@
       <item itemvalue="Gradle.Tests in 'kompiler.test'" />
       <item itemvalue="Gradle.RelooperTest (1)" />
       <item itemvalue="Gradle.ExamplesE2ETest" />
-      <item itemvalue="Gradle.RelooperTest" />
+      <item itemvalue="Kotlin.MainKt" />
       <item itemvalue="Kotlin.WasmBackendKt" />
       <item itemvalue="Kotlin/Native Application.kompiler[native]" />
       <item itemvalue="Kotlin/Native Application.KotlinNativeTemplate[native]" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.ExamplesE2ETest" />
         <item itemvalue="Gradle.Tests in 'kompiler.test'" />
+        <item itemvalue="Kotlin.MainKt" />
+        <item itemvalue="Gradle.ExamplesE2ETest" />
         <item itemvalue="Gradle.RelooperTest (1)" />
         <item itemvalue="Gradle.ExamplesE2ETest" />
-        <item itemvalue="Gradle.RelooperTest" />
       </list>
     </recent_temporary>
   </component>

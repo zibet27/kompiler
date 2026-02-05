@@ -12,14 +12,13 @@ class ExamplesE2ETest {
     private fun readFile(path: Path): String =
         SystemFileSystem.source(path).buffered().use { it.readString() }
 
-    private fun compileAndRun(source: String): String {
-        val compiler = Kompiler()
+    private fun compileAndRun(moduleName: String, source: String): String {
+        val compiler = Kompiler(moduleName)
 
-        // Compile the source
         compiler.compile(source)
 
         // Run with a Node.js test runner that provides alien functions
-        val process = ProcessBuilder("node", "test_runner.js", "build/out/output.wasm")
+        val process = ProcessBuilder("node", "test_runner.js", "build/out/$moduleName.wasm")
             .redirectErrorStream(true)
             .start()
 
@@ -58,7 +57,7 @@ class ExamplesE2ETest {
                 val source = readFile(path)
                 val resultPath = Path(path.toString().replace(".kode", ".result"))
                 val expectedOutput = readFile(resultPath).trim()
-                val result = compileAndRun(source)
+                val result = compileAndRun(path.name.replace(".kode", ""), source)
 
                 assertEquals(expectedOutput, result)
                 println("✓ ${path.name}")

@@ -1,10 +1,8 @@
 package llvm.opt.pass
 
 import llvm.*
-import llvm.opt.analysis.CFGInfo
 import llvm.opt.util.IRCloner
 import llvm.opt.util.countInstructions
-import llvm.opt.util.findReturns
 
 /**
  * Function inlining optimization pass.
@@ -43,7 +41,7 @@ class InliningPass(
         // Process each function
         for (function in module.functions.toList()) {
             if (function.isExternal) continue
-            
+
             val functionModified = processFunction(function, module, recursiveFunctions)
             modified = modified || functionModified
         }
@@ -74,7 +72,7 @@ class InliningPass(
         do {
             madeProgress = false
 
-            // Find best inlineable call site (smallest callee that passes criteria)
+            // Find the best inlineable call site (smallest callee that passes criteria)
             val callSite = findBestCallSite(caller, module, recursiveFunctions, currentSize, originalSize)
 
             if (callSite != null) {

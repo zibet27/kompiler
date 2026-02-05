@@ -784,35 +784,56 @@ class Relooper(
     }
 
     /**
-     * Find common merge point of two branches.
+     * Find the IMMEDIATE common merge point of two branches using BFS.
+     * This finds the closest common successor, not just any common block in program order.
+     * This is crucial for nested if-else-if structures.
      */
     private fun findMergeBlock(
         thenBlock: IRBasicBlock,
         elseBlock: IRBasicBlock,
         loopBody: Set<IRBasicBlock>?
     ): IRBasicBlock? {
-        // Collect all blocks reachable from then branch
-        val thenReachable = mutableSetOf<IRBasicBlock>()
-        fun collectReachable(block: IRBasicBlock, visited: MutableSet<IRBasicBlock>) {
-            if (block in visited) return
-            visited.add(block)
-            for (succ in successors[block] ?: emptyList()) {
-                // If we have a loop body constraint, don't traverse outside it
-                if (loopBody != null && succ !in loopBody) continue
-                collectReachable(succ, visited)
+        // Use BFS from both branches simultaneously to find the closest common block
+        val thenVisited = mutableSetOf<IRBasicBlock>()
+        val elseVisited = mutableSetOf<IRBasicBlock>()
+        val thenQueue = ArrayDeque<IRBasicBlock>()
+        val elseQueue = ArrayDeque<IRBasicBlock>()
+
+        thenQueue.add(thenBlock)
+        thenVisited.add(thenBlock)
+        elseQueue.add(elseBlock)
+        elseVisited.add(elseBlock)
+
+        // BFS level by level from both sides
+        while (thenQueue.isNotEmpty() || elseQueue.isNotEmpty()) {
+            // Process one level of then-side BFS
+            repeat(thenQueue.size) {
+                val block = thenQueue.removeFirst()
+                for (succ in successors[block] ?: emptyList()) {
+                    if (loopBody != null && succ !in loopBody) continue
+                    if (succ in elseVisited && succ != thenBlock && succ != elseBlock) {
+                        return succ // Found closest common successor
+                    }
+                    if (succ !in thenVisited) {
+                        thenVisited.add(succ)
+                        thenQueue.add(succ)
+                    }
+                }
             }
-        }
-        collectReachable(thenBlock, thenReachable)
 
-        // Collect all blocks reachable from else branch
-        val elseReachable = mutableSetOf<IRBasicBlock>()
-        collectReachable(elseBlock, elseReachable)
-
-        // Find first common block in program order
-        for (block in function.basicBlocks) {
-            if (block in thenReachable && block in elseReachable &&
-                block != thenBlock && block != elseBlock) {
-                return block
+            // Process one level of else-side BFS
+            repeat(elseQueue.size) {
+                val block = elseQueue.removeFirst()
+                for (succ in successors[block] ?: emptyList()) {
+                    if (loopBody != null && succ !in loopBody) continue
+                    if (succ in thenVisited && succ != thenBlock && succ != elseBlock) {
+                        return succ // Found closest common successor
+                    }
+                    if (succ !in elseVisited) {
+                        elseVisited.add(succ)
+                        elseQueue.add(succ)
+                    }
+                }
             }
         }
 
