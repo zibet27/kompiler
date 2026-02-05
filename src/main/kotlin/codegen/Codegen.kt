@@ -578,13 +578,5 @@ class Codegen : CodegenContext(), AstVisitor<IRValue?> {
     }
 
     override fun visit(node: FieldInit) = node.value.accept(this)
-
-    companion object {
-        fun generate(ast: Program): String {
-            val codegen = Codegen()
-            codegen.visit(ast)
-            return codegen.module.dump()
-        }
-    }
 }
 

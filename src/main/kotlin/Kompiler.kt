@@ -5,6 +5,10 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.writeString
 import parser.KodeParser
+import wasm.WasmBackend
+import llvm.IRModule
+import llvm.IRPrinter
+import java.io.File
 
 class Kompiler {
     private val outputDir = "build/out"
@@ -18,7 +22,7 @@ class Kompiler {
     }
 
     fun compile(source: String) {
-        java.io.File(outputDir).mkdirs()
+        File(outputDir).mkdirs()
         val parser = KodeParser()
         val programAst = parser.parse(source)
 
@@ -28,28 +32,23 @@ class Kompiler {
             return
         }
 
-        val ir = Codegen.generate(programAst)
+        // Generate LLVM IR module
+        val codegen = Codegen()
+        codegen.visit(programAst)
+        val irModule: IRModule = codegen.module
+
+        // Write LLVM IR text (for debugging)
+        val irText = IRPrinter().print(irModule)
         val irPath = Path("$outputDir/output.ll")
         SystemFileSystem.sink(irPath).buffered().use { sink ->
-            sink.writeString(ir)
+            sink.writeString(irText)
         }
 
-        // Compile LLVM IR to WebAssembly
-        val objFileResult = executeCommand("llc -march=wasm32 -filetype=obj $outputDir/output.ll -o $outputDir/output.o")
-        if (objFileResult != 0) {
-            error("Generating WebAssembly object file failed with exit code: $objFileResult")
-        }
-        // Compile alien runtime (C) to WebAssembly object using bare WASI imports (no libc)
-        val alienObjResult = executeCommand(
-            "clang --target=wasm32-unknown-unknown -O2 -ffreestanding -fno-builtin -c src/runtime/alien_runtime.c -o $outputDir/alien.o"
-        )
-        if (alienObjResult != 0) {
-            error("Compiling alien runtime failed with exit code: $alienObjResult")
-        }
-        val linkingResult = executeCommand("wasm-ld $outputDir/output.o $outputDir/alien.o -o $outputDir/output.wasm --export-all")
-        if (linkingResult != 0) {
-            error("Linking WebAssembly object file failed with exit code: $linkingResult")
-        }
+        // Compile to WebAssembly using pure Kotlin backend
+        val wasmBytes = WasmBackend().compile(irModule)
+        File("$outputDir/output.wasm").writeBytes(wasmBytes)
+
+        println("Compiled to WebAssembly: $outputDir/output.wasm (${wasmBytes.size} bytes)")
     }
 
     fun run(source: String) {

@@ -21,7 +21,7 @@ data class FunDecl(
     val returnType: TypeRef,
     override val span: Span
 ) : TopDecl {
-    var kodeType: KodeType.Fn? = null
+    lateinit var kodeType: KodeType.Fn
 }
 
 data class FunDef(
@@ -31,7 +31,7 @@ data class FunDef(
     val body: Block,
     override val span: Span
 ) : TopDecl {
-    var kodeType: KodeType.Fn? = null
+    lateinit var kodeType: KodeType.Fn
 }
 
 data class AlienFunDecl(
@@ -40,7 +40,7 @@ data class AlienFunDecl(
     val returnType: TypeRef,
     override val span: Span
 ) : TopDecl {
-    var kodeType: KodeType.Fn? = null
+    lateinit var kodeType: KodeType.Fn
 }
 
 data class ObjectDecl(val name: String, override val span: Span) : TopDecl

@@ -5,41 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/Codegen.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/CodegenContext.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/junie.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/junie.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/RelooperTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeInterop/cinterop/llvm.def" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Kompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Ast.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstPrint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/AstPrint.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/AstValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/AstValue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/ast/visitor/AstVisitor.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/visitor/AstVisitor.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/Codegen.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/CodegenContext.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/codegen/LlvmDsl.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Lexer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Lexer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/lexer/Token.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/lexer/Token.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeGrammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/KodeGrammar.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/KodeParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/KodeParser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/Parser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/Parser.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/ast/AstActions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/ast/AstActions.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/Grammar.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/Grammar.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/GrammarDsl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/GrammarDsl.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/LALRParserGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/LALRParserGenerator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/LR1Item.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/LR1Item.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/parser/generator/ParsingTableCache.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/parser/generator/ParsingTableCache.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/type/KodeType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/type/KodeType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeMain/kotlin/type/TypeChecker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/type/TypeChecker.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ExamplesTypecheckTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesTypecheckTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/LexerTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/LexerTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ParserE2ETest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserGeneratorTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ParserGeneratorTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nativeTest/kotlin/ParserTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ParserTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/7_loops.kode" beforeDir="false" afterPath="$PROJECT_DIR$/examples/7_loops.kode" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/ast/Ast.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/ast/Ast.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/codegen/Codegen.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/codegen/Codegen.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/ExamplesE2ETest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +21,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="83" />
+    <option name="cachedIndexableFilesCount" value="113" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -159,6 +133,7 @@
   "keyToString": {
     "Gradle.Build kompiler.executor": "Run",
     "Gradle.Building Kotlin artifacts for kompiler[native].executor": "Run",
+    "Gradle.ExamplesE2ETest (1).executor": "Run",
     "Gradle.ExamplesE2ETest.executor": "Run",
     "Gradle.ExamplesE2ETest.run all valid examples and verify output.executor": "Run",
     "Gradle.ExamplesTypecheckTest (1).executor": "Run",
@@ -173,9 +148,12 @@
     "Gradle.ParserTest (1).executor": "Run",
     "Gradle.ParserTest.executor": "Run",
     "Gradle.ParserTest.pointerTypes.executor": "Run",
+    "Gradle.RelooperTest (1).executor": "Run",
+    "Gradle.RelooperTest.executor": "Run",
     "Gradle.Tests in 'kompiler.nativeTest'.executor": "Run",
     "Gradle.Tests in 'kompiler.test'.executor": "Run",
     "Gradle.kompiler [:MainKt.main()].executor": "Run",
+    "Gradle.kompiler [:wasm.WasmBackendKt.main()].executor": "Run",
     "Gradle.kompiler [cleanNativeDistributionCommonization].executor": "Run",
     "Gradle.kompiler [commonizeNativeDistribution].executor": "Run",
     "Gradle.kompiler [commonize].executor": "Run",
@@ -198,7 +176,7 @@
     "cidr.known.project.marker": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForALLUsers.v1": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultAutoModeForEAPUsers.v1": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "wasm-backend-claude",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/oleh.pantus/Documents/uni/kompiler",
@@ -211,14 +189,17 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2312457",
-    "settings.editor.selected.configurable": "preferences.language.Kotlin",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecapSpentCounter">
-    <option name="endsOfQuotaMs" value="1770022800042" />
-    <option name="spentUsd" value="0.0173515" />
+    <option name="endsOfQuotaMs" value="1772614800045" />
+    <option name="spentUsd" value="0.11862205" />
+  </component>
+  <component name="RecapUselessUpdatesCounter">
+    <option name="suspendCountdown" value="3" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -241,11 +222,10 @@
       <recent name="parser.generator" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.LLVMTest (1)">
-    <configuration default="true" type="AppleRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" IS_LOCATION_SIMULATION_SUPPORTED="false" IS_LOCATION_SIMULATION_ALLOWED="true" APPLICATION_LANGUAGE="IDELaunchSchemeLanguageUseSystemLanguage" APPLICATION_REGION="" DEVELOPMENT_TEAM="${TEAM_ID}" MAKE_ACTIVE="TRUE" SHOULD_DEBUG_EXTENSIONS="false">
-      <embedded_app_extension_list />
+  <component name="RunManager" selected="Gradle.RelooperTest (1)">
+    <configuration default="true" type="Application" factoryName="Application">
       <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="ExamplesE2ETest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -261,7 +241,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;test.ExamplesE2ETest&quot;" />
+            <option value="&quot;ExamplesE2ETest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -275,7 +255,7 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="LLVMTest (1)" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="RelooperTest (1)" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -288,7 +268,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;LLVMTest&quot;" />
+            <option value="&quot;RelooperTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -302,7 +282,7 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="LLVMTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="RelooperTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -315,7 +295,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;llvm.LLVMTest&quot;" />
+            <option value="&quot;wasm.RelooperTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -329,57 +309,12 @@
       <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
-    <configuration name="ParserE2ETest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-            <option value="--tests" />
-            <option value="&quot;test.ParserE2ETest&quot;" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
-      <method v="2" />
-    </configuration>
-    <configuration name="Tests in 'kompiler.test'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value=":test" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
-      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
-      <DebugAllEnabled>false</DebugAllEnabled>
-      <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
-      <method v="2" />
+    <configuration name="WasmBackendKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="wasm.WasmBackendKt" />
+      <module name="kompiler.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
     </configuration>
     <configuration default="true" type="JetRunConfigurationType">
       <module name="KotlinNativeTemplate" />
@@ -425,21 +360,20 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Gradle.LLVMTest" />
-      <item itemvalue="Gradle.LLVMTest (1)" />
-      <item itemvalue="Gradle.Tests in 'kompiler.test'" />
+      <item itemvalue="Gradle.RelooperTest (1)" />
       <item itemvalue="Gradle.ExamplesE2ETest" />
-      <item itemvalue="Gradle.ParserE2ETest" />
+      <item itemvalue="Gradle.RelooperTest" />
+      <item itemvalue="Kotlin.WasmBackendKt" />
       <item itemvalue="Kotlin/Native Application.kompiler[native]" />
       <item itemvalue="Kotlin/Native Application.KotlinNativeTemplate[native]" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Gradle.LLVMTest (1)" />
-        <item itemvalue="Gradle.ParserE2ETest" />
+        <item itemvalue="Gradle.RelooperTest (1)" />
         <item itemvalue="Gradle.ExamplesE2ETest" />
-        <item itemvalue="Gradle.Tests in 'kompiler.test'" />
-        <item itemvalue="Gradle.LLVMTest" />
+        <item itemvalue="Gradle.ExamplesE2ETest" />
+        <item itemvalue="Gradle.RelooperTest" />
+        <item itemvalue="Kotlin.WasmBackendKt" />
       </list>
     </recent_temporary>
   </component>
@@ -483,6 +417,8 @@
       <workItem from="1766839900011" duration="27527000" />
       <workItem from="1767609086851" duration="99000" />
       <workItem from="1769951285116" duration="5484000" />
+      <workItem from="1770125893279" duration="17549000" />
+      <workItem from="1770287009392" duration="2798000" />
     </task>
     <servers />
   </component>
