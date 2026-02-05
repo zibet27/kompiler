@@ -8,6 +8,9 @@ import parser.KodeParser
 import wasm.WasmBackend
 import llvm.IRModule
 import llvm.IRPrinter
+import llvm.opt.pass.InliningPass
+import llvm.opt.pass.Mem2RegPass
+import llvm.opt.pass.PassManager
 import java.io.File
 
 class Kompiler {
@@ -36,6 +39,13 @@ class Kompiler {
         val codegen = Codegen()
         codegen.visit(programAst)
         val irModule: IRModule = codegen.module
+
+        // Run LLVM IR optimizations
+        val passManager = PassManager()
+        // Note: Mem2Reg disabled - has bugs with complex nested if-else-if patterns
+        // passManager.add(Mem2RegPass())  // TODO: Fix for nested control flow
+        passManager.add(InliningPass())
+        passManager.runOnModule(irModule)
 
         // Write LLVM IR text (for debugging)
         val irText = IRPrinter().print(irModule)
