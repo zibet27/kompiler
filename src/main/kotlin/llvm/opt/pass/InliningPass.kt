@@ -25,7 +25,7 @@ class InliningPass(
     /** Maximum total growth allowed (ratio of new size to old size) */
     private val maxGrowthRatio: Double = 2.0
 ) : OptimizationPass {
-    
+
     override val name = "inline"
 
     /** Global counter for unique inline naming across all inlines */
@@ -33,11 +33,11 @@ class InliningPass(
 
     override fun runOnModule(module: IRModule): Boolean {
         var modified = false
-        
+
         // Build call graph to detect recursion
         val callGraph = buildCallGraph(module)
         val recursiveFunctions = findRecursiveFunctions(callGraph)
-        
+
         // Process each function
         for (function in module.functions.toList()) {
             if (function.isExternal) continue
@@ -45,7 +45,7 @@ class InliningPass(
             val functionModified = processFunction(function, module, recursiveFunctions)
             modified = modified || functionModified
         }
-        
+
         return modified
     }
 
@@ -71,17 +71,15 @@ class InliningPass(
         var madeProgress: Boolean
         do {
             madeProgress = false
-
             // Find the best inlineable call site (smallest callee that passes criteria)
             val callSite = findBestCallSite(caller, module, recursiveFunctions, currentSize, originalSize)
+                ?: continue
 
-            if (callSite != null) {
-                val inlined = inlineCallSite(callSite, caller, module)
-                if (inlined) {
-                    modified = true
-                    madeProgress = true
-                    currentSize = countInstructions(caller)
-                }
+            val inlined = callSite.inline(caller)
+            if (inlined) {
+                modified = true
+                madeProgress = true
+                currentSize = countInstructions(caller)
             }
         } while (madeProgress)
 
@@ -103,18 +101,18 @@ class InliningPass(
 
         for (block in caller.basicBlocks) {
             for (instruction in block.instructions) {
-                if (instruction is IRInstruction.Call) {
-                    val callee = resolveCallee(instruction.function, module)
-                    if (callee != null) {
-                        val callSite = CallSiteInfo(instruction, block, callee)
-                        if (shouldInline(callSite, caller, recursiveFunctions, currentSize, originalSize)) {
-                            val calleeSize = countInstructions(callee)
-                            if (calleeSize < bestSize) {
-                                bestSize = calleeSize
-                                bestSite = callSite
-                            }
-                        }
-                    }
+                if (instruction !is IRInstruction.Call) {
+                    continue
+                }
+                val callee = resolveCallee(instruction.function, module) ?: continue
+                val callSite = CallSiteInfo(instruction, block, callee)
+                if (!shouldInline(callSite, caller, recursiveFunctions, currentSize, originalSize)) {
+                    continue
+                }
+                val calleeSize = countInstructions(callee)
+                if (calleeSize < bestSize) {
+                    bestSize = calleeSize
+                    bestSite = callSite
                 }
             }
         }
@@ -133,56 +131,45 @@ class InliningPass(
         originalSize: Int
     ): Boolean {
         val callee = callSite.callee
-        
+
         // Don't inline external functions
         if (callee.isExternal) return false
-        
+
         // Don't inline recursive functions
         if (callee in recursiveFunctions) return false
-        
+
         // Don't inline self-recursive calls
         if (callee == caller) return false
-        
+
         val calleeSize = countInstructions(callee)
-        
+
         // Always inline very small functions
         if (calleeSize <= alwaysInlineThreshold) return true
-        
+
         // Don't inline large functions
         if (calleeSize > sizeThreshold) return false
-        
+
         // Check growth ratio
         val projectedSize = currentSize + calleeSize - 1  // -1 for the call instruction
         if (projectedSize > originalSize * maxGrowthRatio) return false
-        
+
         return true
     }
 
-    /**
-     * Inline a single call site.
-     */
-    private fun inlineCallSite(
-        callSite: CallSiteInfo,
-        caller: IRFunction,
-        module: IRModule
-    ): Boolean {
-        val call = callSite.call
-        val block = callSite.block
-        val callee = callSite.callee
-        
+    private fun CallSiteInfo.inline(caller: IRFunction): Boolean {
         // Create the cloner with unique prefix and map parameters to arguments
         val inlineId = inlineCounter++
         val cloner = IRCloner(namePrefix = "inl${inlineId}.${callee.name}")
         for ((param, arg) in callee.parameters.zip(call.args)) {
             cloner.mapValue(param, arg)
         }
-        
+
         // Clone the callee's body
         val clonedBlocks = cloner.cloneFunctionBody(callee)
         if (clonedBlocks.isEmpty()) return false
-        
+
         val clonedEntry = clonedBlocks.first()
-        
+
         // Find return instructions in the cloned body
         val returns = mutableListOf<Pair<IRInstruction.Ret, IRBasicBlock>>()
         for (clonedBlock in clonedBlocks) {
@@ -192,23 +179,23 @@ class InliningPass(
                 }
             }
         }
-        
+
         // Split the caller block at the call site
         val callIndex = block.instructions.indexOf(call)
         val instructionsAfterCall = block.instructions.subList(callIndex + 1, block.instructions.size).toList()
-        
+
         // Remove instructions after call (and the call itself)
         while (block.instructions.size > callIndex) {
             block.instructions.removeAt(block.instructions.size - 1)
         }
-        
+
         // Create continuation block for instructions after the call
         val continueBlock = IRBasicBlock("inl.continue.${cloner.freshName("cont")}")
         continueBlock.instructions.addAll(instructionsAfterCall)
-        
+
         // Add branch from caller block to inlined entry
         block.instructions.add(IRInstruction.Br(clonedEntry))
-        
+
         // Handle return value
         if (call.type != IRType.Void && returns.isNotEmpty()) {
             if (returns.size == 1) {
@@ -218,7 +205,7 @@ class InliningPass(
                     // Replace uses of the call result with the return value
                     replaceCallResult(call, retVal, caller, continueBlock)
                 }
-                
+
                 // Replace return with branch to continue block
                 retBlock.instructions.remove(ret)
                 retBlock.instructions.add(IRInstruction.Br(continueBlock))
@@ -226,16 +213,16 @@ class InliningPass(
                 // Multiple returns - need a PHI node
                 val phi = IRInstruction.Phi(call.type, mutableListOf(), "inl.retval.${cloner.freshName("phi")}")
                 continueBlock.instructions.add(0, phi)
-                
+
                 for ((ret, retBlock) in returns) {
                     val retVal = ret.value ?: continue
                     phi.addIncoming(retVal, retBlock)
-                    
+
                     // Replace return with branch to continue block
                     retBlock.instructions.remove(ret)
                     retBlock.instructions.add(IRInstruction.Br(continueBlock))
                 }
-                
+
                 // Replace uses of the call result with the PHI
                 replaceCallResult(call, phi, caller, continueBlock)
             }
@@ -246,12 +233,12 @@ class InliningPass(
                 retBlock.instructions.add(IRInstruction.Br(continueBlock))
             }
         }
-        
+
         // Insert the cloned blocks and continue block into the caller
         val blockIndex = caller.basicBlocks.indexOf(block)
         caller.basicBlocks.addAll(blockIndex + 1, clonedBlocks)
         caller.basicBlocks.add(blockIndex + 1 + clonedBlocks.size, continueBlock)
-        
+
         return true
     }
 
@@ -284,16 +271,20 @@ class InliningPass(
                 if (inst.lhs === oldValue) setField(inst, "lhs", newValue)
                 if (inst.rhs === oldValue) setField(inst, "rhs", newValue)
             }
+
             is IRInstruction.Unary -> {
                 if (inst.value === oldValue) setField(inst, "value", newValue)
             }
+
             is IRInstruction.Load -> {
                 if (inst.ptr === oldValue) setField(inst, "ptr", newValue)
             }
+
             is IRInstruction.Store -> {
                 if (inst.value === oldValue) setField(inst, "value", newValue)
                 if (inst.ptr === oldValue) setField(inst, "ptr", newValue)
             }
+
             is IRInstruction.GEP -> {
                 if (inst.ptr === oldValue) setField(inst, "ptr", newValue)
                 // Handle indices list
@@ -302,6 +293,7 @@ class InliningPass(
                     setField(inst, "indices", newIndices)
                 }
             }
+
             is IRInstruction.Call -> {
                 if (inst.function === oldValue) setField(inst, "function", newValue)
                 // Handle args list
@@ -310,12 +302,15 @@ class InliningPass(
                     setField(inst, "args", newArgs)
                 }
             }
+
             is IRInstruction.Ret -> {
                 if (inst.value === oldValue) setField(inst, "value", newValue)
             }
+
             is IRInstruction.CondBr -> {
                 if (inst.condition === oldValue) setField(inst, "condition", newValue)
             }
+
             is IRInstruction.Phi -> {
                 for (i in inst.incoming.indices) {
                     val (value, block) = inst.incoming[i]
@@ -324,17 +319,21 @@ class InliningPass(
                     }
                 }
             }
+
             is IRInstruction.ICmp -> {
                 if (inst.lhs === oldValue) setField(inst, "lhs", newValue)
                 if (inst.rhs === oldValue) setField(inst, "rhs", newValue)
             }
+
             is IRInstruction.FCmp -> {
                 if (inst.lhs === oldValue) setField(inst, "lhs", newValue)
                 if (inst.rhs === oldValue) setField(inst, "rhs", newValue)
             }
+
             is IRInstruction.Cast -> {
                 if (inst.value === oldValue) setField(inst, "value", newValue)
             }
+
             else -> {}
         }
     }
@@ -354,12 +353,12 @@ class InliningPass(
      */
     private fun buildCallGraph(module: IRModule): Map<IRFunction, Set<IRFunction>> {
         val callGraph = mutableMapOf<IRFunction, MutableSet<IRFunction>>()
-        
+
         for (function in module.functions) {
             callGraph[function] = mutableSetOf()
-            
+
             if (function.isExternal) continue
-            
+
             for (block in function.basicBlocks) {
                 for (inst in block.instructions) {
                     if (inst is IRInstruction.Call) {
@@ -371,7 +370,7 @@ class InliningPass(
                 }
             }
         }
-        
+
         return callGraph
     }
 
@@ -380,13 +379,13 @@ class InliningPass(
      */
     private fun findRecursiveFunctions(callGraph: Map<IRFunction, Set<IRFunction>>): Set<IRFunction> {
         val recursive = mutableSetOf<IRFunction>()
-        
+
         for (function in callGraph.keys) {
             if (isRecursive(function, callGraph, mutableSetOf())) {
                 recursive.add(function)
             }
         }
-        
+
         return recursive
     }
 
@@ -400,18 +399,17 @@ class InliningPass(
     ): Boolean {
         if (function in visited) return true
         visited.add(function)
-        
+
         for (callee in callGraph[function] ?: emptySet()) {
             if (isRecursive(callee, callGraph, visited)) {
                 return true
             }
         }
-        
+
         visited.remove(function)
         return false
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun setField(obj: Any, fieldName: String, value: Any?) {
         val field = obj::class.java.getDeclaredField(fieldName)
         field.isAccessible = true

@@ -1,0 +1,24 @@
+// Demonstrates both optimizations working together
+// mem2reg promotes variables to SSA, then inlining removes call overhead
+
+alien fun print_int{ x: i32 }: void;
+
+fun double{ x: i32 }: i32 (
+    x + x;
+);
+
+fun triple{ x: i32 }: i32 (
+    x + x + x;
+);
+
+fun main{}: i32 (
+    i32 a = 5;
+    i32 b = double{ a };
+    i32 c = triple{ b };
+    print_int{ c };  // triple(double(5)) = triple(10) = 30
+    0;
+);
+
+// Run with: kompiler examples/opt/6_combined.kode --print-opt
+// Compare with: kompiler examples/opt/6_combined.kode --print-opt --no-inline
+// EXPECTED OUTPUT: 30

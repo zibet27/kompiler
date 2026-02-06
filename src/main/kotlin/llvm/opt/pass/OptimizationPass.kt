@@ -2,8 +2,6 @@ package llvm.opt.pass
 
 import llvm.IRFunction
 import llvm.IRModule
-import llvm.opt.analysis.AnalysisPass
-import kotlin.reflect.KClass
 
 /**
  * Base interface for all optimization passes.
@@ -12,16 +10,11 @@ import kotlin.reflect.KClass
  * They return true if the IR was modified, false otherwise.
  */
 interface OptimizationPass {
-    /** Unique name for this pass */
     val name: String
-
-    /** List of analysis passes this optimization depends on */
-    val dependencies: List<KClass<out AnalysisPass<*, *>>>
-        get() = emptyList()
 
     /**
      * Run optimization on the entire module.
-     * Default implementation iterates over all functions.
+     * The default implementation iterates over all functions.
      * @return true if the module was modified
      */
     fun runOnModule(module: IRModule): Boolean {
@@ -51,9 +44,20 @@ interface IterativePass : OptimizationPass {
 }
 
 /**
- * Configuration for a pass.
+ * Configuration for optimization passes.
  */
 data class PassConfig(
     val enableLogging: Boolean = false,
-    val validateAfterPass: Boolean = false
+    val validateAfterPass: Boolean = false,
+    val printVisualization: Boolean = false
+)
+
+/**
+ * Configuration for which optimizations to enable/disable.
+ */
+data class OptimizationConfig(
+    val enableMem2Reg: Boolean = true,
+    val enableInlining: Boolean = true,
+    val printVisualization: Boolean = false,
+    val printWasm: Boolean = false
 )

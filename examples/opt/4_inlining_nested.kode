@@ -1,0 +1,22 @@
+// Demonstrates nested inlining: square calls multiply, both get inlined
+// Before: main -> square -> multiply call chain
+// After: single multiplication directly in main
+
+alien fun print_int{ x: i32 }: void;
+
+fun multiply{ a: i32, b: i32 }: i32 (
+    a * b;
+);
+
+fun square{ x: i32 }: i32 (
+    multiply{ x, x };
+);
+
+fun main{}: i32 (
+    i32 result = square{ 5 };
+    print_int{ result };
+    0;
+);
+
+// Run with: kompiler examples/opt/4_inlining_nested.kode --print-opt
+// EXPECTED OUTPUT: 25

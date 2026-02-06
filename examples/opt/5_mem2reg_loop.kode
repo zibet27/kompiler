@@ -1,0 +1,21 @@
+// Demonstrates mem2reg with loops: PHI nodes for loop variables
+// Before: alloca for loop counter with repeated load/store
+// After: PHI node at loop header, direct value updates
+
+alien fun print_int{ x: i32 }: void;
+
+fun main{}: i32 (
+    i32 sum = 0;
+    i32 i = 0;
+
+    while { i < 5 } (
+        sum = sum + i;
+        i = i + 1;
+    );
+
+    print_int{ sum };  // 0+1+2+3+4 = 10
+    0;
+);
+
+// Run with: kompiler examples/opt/5_mem2reg_loop.kode --print-opt
+// EXPECTED OUTPUT: 10

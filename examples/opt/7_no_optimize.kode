@@ -1,0 +1,24 @@
+// Use this to compare optimized vs unoptimized output
+// Run with different flags to see the difference
+
+alien fun print_int{ x: i32 }: void;
+
+fun increment{ x: i32 }: i32 (
+    x + 1;
+);
+
+fun main{}: i32 (
+    i32 count = 0;
+    count = increment{ count };
+    count = increment{ count };
+    count = increment{ count };
+    print_int{ count };
+    0;
+);
+
+// Compare:
+//   kompiler examples/opt/7_no_optimize.kode --print-opt
+//   kompiler examples/opt/7_no_optimize.kode --print-opt --no-mem2reg
+//   kompiler examples/opt/7_no_optimize.kode --print-opt --no-inline
+//   kompiler examples/opt/7_no_optimize.kode --print-opt --no-mem2reg --no-inline
+// EXPECTED OUTPUT: 3

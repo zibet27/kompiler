@@ -8,7 +8,7 @@ import llvm.opt.analysis.*
  * 
  * Promotes stack allocations (alloca) to SSA registers where possible.
  * This is a key optimization that enables many other optimizations by
- * converting memory operations to SSA form.
+ * converting memory operations to an SSA form.
  * 
  * An alloca is promotable if:
  * - It allocates a scalar type (not aggregates accessed via GEP)
@@ -187,7 +187,7 @@ class Mem2RegPass : OptimizationPass {
         }
 
         // General case: need PHI nodes
-        promoteWithPhi(alloca, stores, loads, function, cfg, domInfo)
+        promoteWithPhi(alloca, stores, function, cfg, domInfo)
     }
 
     /**
@@ -196,7 +196,6 @@ class Mem2RegPass : OptimizationPass {
     private fun promoteWithPhi(
         alloca: IRInstruction.Alloca,
         stores: List<StoreInfo>,
-        loads: List<LoadInfo>,
         function: IRFunction,
         cfg: CFGInfo,
         domInfo: DominanceInfo

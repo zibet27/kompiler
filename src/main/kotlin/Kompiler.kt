@@ -1,8 +1,6 @@
 import codegen.Codegen
 import llvm.IRModule
-import llvm.opt.pass.InliningPass
-import llvm.opt.pass.Mem2RegPass
-import llvm.opt.pass.PassManager
+import llvm.opt.pass.*
 import parser.KodeParser
 import type.TypeChecker
 import wasm.WasmBackend
@@ -12,7 +10,10 @@ fun String.filename() = substringAfterLast(delimiter = "/").substringBeforeLast(
 
 fun String.extension() = substringAfterLast(delimiter = ".")
 
-class Kompiler(moduleName: String) {
+class Kompiler(
+    moduleName: String,
+    private val optConfig: OptimizationConfig = OptimizationConfig()
+) {
     private val outputDir = "build/out"
     private val outputPath = "$outputDir/${moduleName}.wasm"
 
@@ -33,14 +34,45 @@ class Kompiler(moduleName: String) {
         val irModule: IRModule = codegen.module
 
         // Run LLVM IR optimizations
-        val passManager = PassManager()
-        passManager.add(Mem2RegPass())
-        passManager.add(InliningPass())
+        val passConfig = PassConfig(printVisualization = optConfig.printVisualization)
+        val passManager = PassManager(passConfig)
+        if (optConfig.enableMem2Reg) {
+            passManager.add(Mem2RegPass())
+        }
+        if (optConfig.enableInlining) {
+            passManager.add(InliningPass())
+        }
         passManager.runOnModule(irModule)
 
         // Compile to WebAssembly using pure Kotlin backend
         val wasmBytes = WasmBackend().compile(irModule)
         File(outputPath).writeBytes(wasmBytes)
+
+        // Print WASM using wabt if requested
+        if (optConfig.printWasm) {
+            printWasmText(outputPath)
+        }
+    }
+
+    private fun printWasmText(wasmPath: String) {
+        try {
+            val process = ProcessBuilder("wasm2wat", wasmPath)
+                .redirectErrorStream(true)
+                .start()
+            val output = process.inputStream.bufferedReader().readText()
+            val exitCode = process.waitFor()
+            if (exitCode == 0) {
+                println("\n${"=".repeat(60)}")
+                println("GENERATED WASM (via wasm2wat)")
+                println("=".repeat(60))
+                println(output)
+            } else {
+                println("Warning: wasm2wat failed with exit code $exitCode")
+                println(output)
+            }
+        } catch (e: Exception) {
+            println("Warning: Could not run wasm2wat. Is wabt installed? (${e.message})")
+        }
     }
 
     fun run(source: String) {

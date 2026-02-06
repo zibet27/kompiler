@@ -2,14 +2,12 @@ package llvm.opt.pass
 
 import llvm.IRFunction
 import llvm.IRModule
-import llvm.opt.analysis.AnalysisPass
-import llvm.opt.analysis.FunctionAnalysis
-import llvm.opt.analysis.ModuleAnalysis
+import llvm.IRPrinter
 import kotlin.reflect.KClass
 
 /**
  * Manages and executes optimization passes.
- * 
+ *
  * The PassManager orchestrates the execution of optimization passes,
  * handles analysis caching, and supports fixed-point iteration.
  */
@@ -17,8 +15,7 @@ class PassManager(
     private val config: PassConfig = PassConfig()
 ) {
     private val passes = mutableListOf<OptimizationPass>()
-    private val analyses = mutableMapOf<KClass<out AnalysisPass<*, *>>, AnalysisPass<*, *>>()
-    
+
     // Analysis result caches
     private val functionAnalysisCache = mutableMapOf<Pair<KClass<*>, IRFunction>, Any?>()
     private val moduleAnalysisCache = mutableMapOf<KClass<*>, Any?>()
@@ -32,66 +29,53 @@ class PassManager(
     }
 
     /**
-     * Register an analysis pass for use by optimizations.
-     */
-    fun <T, R> registerAnalysis(analysisClass: KClass<out AnalysisPass<T, R>>, analysis: AnalysisPass<T, R>): PassManager {
-        analyses[analysisClass] = analysis
-        return this
-    }
-
-    /**
-     * Get or compute a function analysis result.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <R> getFunctionAnalysis(analysisClass: KClass<out FunctionAnalysis<R>>, function: IRFunction): R {
-        val cacheKey = analysisClass to function
-        return functionAnalysisCache.getOrPut(cacheKey) {
-            val analysis = analyses[analysisClass] as? FunctionAnalysis<R>
-                ?: error("Analysis ${analysisClass.simpleName} not registered")
-            analysis.analyze(function)
-        } as R
-    }
-
-    /**
-     * Get or compute a module analysis result.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun <R> getModuleAnalysis(analysisClass: KClass<out ModuleAnalysis<R>>, module: IRModule): R {
-        return moduleAnalysisCache.getOrPut(analysisClass) {
-            val analysis = analyses[analysisClass] as? ModuleAnalysis<R>
-                ?: error("Analysis ${analysisClass.simpleName} not registered")
-            analysis.analyze(module)
-        } as R
-    }
-
-    /**
      * Run all registered passes on the module.
      * @return true if any pass modified the module
      */
     fun runOnModule(module: IRModule): Boolean {
         var modified = false
-        
+        val printer = if (config.printVisualization) IRPrinter() else null
+
+        if (config.printVisualization) {
+            println("=".repeat(60))
+            println("OPTIMIZATION VISUALIZATION")
+            println("=".repeat(60))
+            println("\n--- BEFORE OPTIMIZATIONS ---")
+            println(printer!!.print(module))
+        }
+
         for (pass in passes) {
             if (config.enableLogging) {
                 println("Running pass: ${pass.name}")
             }
-            
+
             val passModified = if (pass is IterativePass) {
                 runIterativePass(pass, module)
             } else {
                 pass.runOnModule(module)
             }
-            
+
             if (passModified) {
                 modified = true
                 invalidateAnalyses()
-                
+
                 if (config.enableLogging) {
                     println("  -> Modified")
                 }
+
+                if (config.printVisualization) {
+                    println("\n--- AFTER ${pass.name.uppercase()} ---")
+                    println(printer!!.print(module))
+                }
+            } else if (config.printVisualization) {
+                println("\n--- ${pass.name.uppercase()} (no changes) ---")
             }
         }
-        
+
+        if (config.printVisualization) {
+            println("=".repeat(60))
+        }
+
         return modified
     }
 
@@ -103,7 +87,7 @@ class PassManager(
         var anyModified = false
         var iteration = 0
         val maxIterations = 100
-        
+
         do {
             val modified = runOnModule(module)
             if (modified) {
@@ -113,40 +97,27 @@ class PassManager(
             }
             iteration++
         } while (iteration < maxIterations)
-        
+
         if (config.enableLogging && iteration >= maxIterations) {
             println("Warning: Fixed-point iteration did not converge after $maxIterations iterations")
         }
-        
-        return anyModified
-    }
 
-    /**
-     * Run a single pass on the module.
-     */
-    fun runPass(pass: OptimizationPass, module: IRModule): Boolean {
-        val modified = pass.runOnModule(module)
-        if (modified) {
-            invalidateAnalyses()
-        }
-        return modified
+        return anyModified
     }
 
     private fun runIterativePass(pass: IterativePass, module: IRModule): Boolean {
         var anyModified = false
         var iteration = 0
-        
+
         do {
-            val modified = pass.runOnModule(module)
-            if (modified) {
-                anyModified = true
-                invalidateAnalyses()
-            } else {
+            if (!pass.runOnModule(module)) {
                 break
             }
+            anyModified = true
+            invalidateAnalyses()
             iteration++
         } while (iteration < pass.maxIterations)
-        
+
         return anyModified
     }
 
@@ -158,20 +129,4 @@ class PassManager(
         functionAnalysisCache.clear()
         moduleAnalysisCache.clear()
     }
-
-    /**
-     * Clear all passes and analyses.
-     */
-    fun clear() {
-        passes.clear()
-        analyses.clear()
-        invalidateAnalyses()
-    }
-}
-
-/**
- * Extension for easy pass manager construction.
- */
-fun passManager(config: PassConfig = PassConfig(), init: PassManager.() -> Unit): PassManager {
-    return PassManager(config).apply(init)
 }
