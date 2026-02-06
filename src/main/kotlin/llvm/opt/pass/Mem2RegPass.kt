@@ -34,7 +34,7 @@ class Mem2RegPass : OptimizationPass {
         if (allocas.isEmpty()) return false
 
         // Filter to promotable allocas
-        val promotable = allocas.filter { isPromotable(it, function) }
+        val promotable = allocas.filter { it.isPromotable(function) }
         if (promotable.isEmpty()) return false
 
         // Compute analyses
@@ -52,9 +52,9 @@ class Mem2RegPass : OptimizationPass {
     /**
      * Check if an alloca is promotable to a register.
      */
-    private fun isPromotable(alloca: IRInstruction.Alloca, function: IRFunction): Boolean {
+    private fun IRInstruction.Alloca.isPromotable(function: IRFunction): Boolean {
         // Only promote scalar types
-        if (!isScalarType(alloca.allocatedType)) {
+        if (!allocatedType.isScalarType()) {
             return false
         }
 
@@ -65,40 +65,29 @@ class Mem2RegPass : OptimizationPass {
                     is IRInstruction.Load -> {
                         // Load from this alloca is fine
                     }
-
-                    is IRInstruction.Store -> {
-                        // Store TO this alloca is fine
-                        // Store OF this alloca's address is not (address escapes)
-                        if (instruction.value === alloca) {
-                            return false
-                        }
+                    // Store TO this alloca is fine, but store OF this alloca's address is not (address escapes)
+                    is IRInstruction.Store -> if (instruction.value === this) {
+                        return false
                     }
 
-                    is IRInstruction.GEP -> {
-                        // GEP on the alloca means we're doing aggregate access
-                        if (instruction.ptr === alloca) {
-                            return false
-                        }
+                    // GEP on the alloca means we're doing aggregate access
+                    is IRInstruction.GEP -> if (instruction.ptr === this) {
+                        return false
                     }
 
-                    is IRInstruction.Call -> {
-                        // Address passed to call means it escapes
-                        if (alloca in instruction.args) {
-                            return false
-                        }
+                    // Address passed to call means it escapes
+                    is IRInstruction.Call -> if (this in instruction.args) {
+                        return false
                     }
 
-                    is IRInstruction.Phi -> {
-                        // PHI of pointer means address escapes
-                        if (instruction.incoming.any { it.first === alloca }) {
-                            return false
-                        }
+                    // PHI of a pointer means address escapes
+                    is IRInstruction.Phi -> if (instruction.incoming.any { it.first === this }) {
+                        return false
                     }
 
-                    else -> {
-                        // Check if alloca is used as an operand (other than in load ptr)
-                        val operands = UseDefInfo.getOperands(instruction)
-                        if (alloca in operands) return false
+                    // Check if alloca is used as an operand (other than in load ptr)
+                    else -> if (this in instruction.operands()) {
+                        return false
                     }
                 }
             }
@@ -108,20 +97,18 @@ class Mem2RegPass : OptimizationPass {
     }
 
     /**
-     * Check if a type is a scalar (can be held in a register).
+     * Check if a type can be held in a register.
      */
-    private fun isScalarType(type: IRType): Boolean {
-        return when (type) {
-            is IRType.Int -> true
-            is IRType.Float -> true
-            is IRType.Double -> true
-            is IRType.Pointer -> true
-            else -> false
-        }
+    private fun IRType.isScalarType(): Boolean = when (this) {
+        is IRType.Int -> true
+        is IRType.Float -> true
+        is IRType.Double -> true
+        is IRType.Pointer -> true
+        else -> false
     }
 
     /**
-     * Promote a single alloca to SSA form.
+     * Promote a single alloca to an SSA form.
      */
     private fun promoteAlloca(
         alloca: IRInstruction.Alloca,
@@ -157,13 +144,13 @@ class Mem2RegPass : OptimizationPass {
         if (stores.isEmpty()) {
             val undef = createUndef(alloca.allocatedType)
             for (load in loads) {
-                replaceAllUsesWith(load.instruction, undef, function)
+                function.replaceAllUses(load.instruction, undef)
             }
             removeAllocaAndUses(alloca, stores, loads, function)
             return
         }
 
-        // If there's only one store and it dominates all loads, simple case
+        // If there's only one store, and it dominates all loads, simple case
         if (stores.size == 1) {
             val store = stores[0]
             val allLoadsDominated = loads.all { load ->
@@ -179,7 +166,7 @@ class Mem2RegPass : OptimizationPass {
 
             if (allLoadsDominated) {
                 for (load in loads) {
-                    replaceAllUsesWith(load.instruction, store.instruction.value, function)
+                    function.replaceAllUses(load.instruction, store.instruction.value)
                 }
                 removeAllocaAndUses(alloca, stores, loads, function)
                 return
@@ -187,21 +174,18 @@ class Mem2RegPass : OptimizationPass {
         }
 
         // General case: need PHI nodes
-        promoteWithPhi(alloca, stores, function, cfg, domInfo)
+        alloca.promoteWithPhi(stores, function, cfg, domInfo)
     }
 
     /**
      * Promote an alloca using PHI node insertion.
      */
-    private fun promoteWithPhi(
-        alloca: IRInstruction.Alloca,
+    private fun IRInstruction.Alloca.promoteWithPhi(
         stores: List<StoreInfo>,
         function: IRFunction,
         cfg: CFGInfo,
         domInfo: DominanceInfo
     ) {
-        val allocaType = alloca.allocatedType
-
         // Compute blocks where PHI nodes are needed
         val defBlocks = stores.map { it.block }.toSet()
         val phiBlocks = domInfo.iteratedDominanceFrontier(defBlocks)
@@ -211,9 +195,9 @@ class Mem2RegPass : OptimizationPass {
         var phiCounter = 0
         for (block in phiBlocks) {
             val phi = IRInstruction.Phi(
-                allocaType,
-                mutableListOf(),
-                "${alloca.name}.phi.${phiCounter++}"
+                allocatedType,
+                incoming = mutableListOf(),
+                name = "${name}.phi.${phiCounter++}"
             )
             // Insert PHI at the beginning of the block
             block.instructions.add(0, phi)
@@ -243,18 +227,14 @@ class Mem2RegPass : OptimizationPass {
             val toRemove = mutableListOf<IRInstruction>()
             for (instruction in block.instructions.toList()) {
                 when (instruction) {
-                    is IRInstruction.Store -> {
-                        if (instruction.ptr === alloca) {
-                            currentDef = instruction.value
-                            toRemove.add(instruction)
-                        }
+                    is IRInstruction.Store -> if (instruction.ptr === this) {
+                        currentDef = instruction.value
+                        toRemove.add(instruction)
                     }
 
-                    is IRInstruction.Load -> {
-                        if (instruction.ptr === alloca) {
-                            replaceAllUsesWith(instruction, currentDef, function)
-                            toRemove.add(instruction)
-                        }
+                    is IRInstruction.Load -> if (instruction.ptr === this) {
+                        function.replaceAllUses(instruction, currentDef)
+                        toRemove.add(instruction)
                     }
 
                     else -> {}
@@ -264,7 +244,7 @@ class Mem2RegPass : OptimizationPass {
             // Remove processed loads and stores
             block.instructions.removeAll(toRemove)
 
-            // Record reaching definition at end of this block
+            // Record reaching definition at the end of this block
             reachingDef[block] = currentDef
 
             // Fill in PHI incoming values for successors
@@ -285,36 +265,36 @@ class Mem2RegPass : OptimizationPass {
             }
         }
 
-        // Start processing from entry block
-        processBlock(entryBlock, createUndef(allocaType))
+        // Start processing from the entry block
+        processBlock(entryBlock, createUndef(allocatedType))
 
         // Fill in remaining PHI incoming edges from unprocessed predecessors
         for ((block, phi) in phiNodes) {
             for (pred in cfg.predecessors(block)) {
                 val existingFromPred = phi.incoming.any { it.second == pred }
                 if (!existingFromPred) {
-                    val def = reachingDef[pred] ?: createUndef(allocaType)
+                    val def = reachingDef[pred] ?: createUndef(allocatedType)
                     phi.addIncoming(def, pred)
                 }
             }
         }
 
         // Remove trivial PHIs (all incoming values are the same)
-        removeTrivialPhis(phiNodes.values.toList(), function)
+        phiNodes.values.removeTrivialPhis(function)
 
         // Remove the alloca
         val entryInstructions = function.basicBlocks.first().instructions
-        entryInstructions.remove(alloca)
+        entryInstructions.remove(this)
     }
 
     /**
      * Remove PHI nodes where all incoming values are the same.
      */
-    private fun removeTrivialPhis(phis: List<IRInstruction.Phi>, function: IRFunction) {
+    private fun Collection<IRInstruction.Phi>.removeTrivialPhis(function: IRFunction) {
         var changed = true
         while (changed) {
             changed = false
-            for (phi in phis.toList()) {
+            for (phi in this) {
                 val uniqueValues = phi.incoming.map { it.first }
                     .filter { it !== phi }
                     .distinct()
@@ -322,7 +302,7 @@ class Mem2RegPass : OptimizationPass {
                 if (uniqueValues.size == 1) {
                     // All incoming values are the same (or self-references)
                     val replacement = uniqueValues[0]
-                    replaceAllUsesWith(phi, replacement, function)
+                    function.replaceAllUses(phi, replacement)
 
                     // Remove the PHI
                     for (block in function.basicBlocks) {
@@ -332,7 +312,7 @@ class Mem2RegPass : OptimizationPass {
                 } else if (uniqueValues.isEmpty()) {
                     // PHI only references itself - unreachable, use undef
                     val undef = createUndef(phi.type)
-                    replaceAllUsesWith(phi, undef, function)
+                    function.replaceAllUses(phi, undef)
                     for (block in function.basicBlocks) {
                         block.instructions.remove(phi)
                     }

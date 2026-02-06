@@ -6,9 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/AnalysisPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/AnalysisPass.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/OptimizationPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/OptimizationPass.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/IR.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/IR.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmBackend.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/wasm/WasmBackend.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,7 +15,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="134" />
+    <option name="cachedIndexableFilesCount" value="138" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -405,6 +404,7 @@
       <workItem from="1769951285116" duration="5484000" />
       <workItem from="1770125893279" duration="17549000" />
       <workItem from="1770287009392" duration="2798000" />
+      <workItem from="1770388066575" duration="1141000" />
     </task>
     <servers />
   </component>

@@ -4,20 +4,6 @@ import llvm.IRBasicBlock
 import llvm.IRFunction
 
 /**
- * Dominance analysis.
- * 
- * Computes the dominator tree and dominance frontiers for a function.
- * Uses the Cooper-Harvey-Kennedy algorithm for computing dominators.
- */
-class DominanceAnalysis : FunctionAnalysis<DominanceInfo> {
-    override val name = "dominance"
-
-    override fun analyze(target: IRFunction): DominanceInfo {
-        return DominanceInfo.compute(target)
-    }
-}
-
-/**
  * Result of dominance analysis for a function.
  */
 class DominanceInfo private constructor(
@@ -26,14 +12,6 @@ class DominanceInfo private constructor(
     private val dominanceFrontiers: Map<IRBasicBlock, Set<IRBasicBlock>>,
     private val domTreeChildren: Map<IRBasicBlock, Set<IRBasicBlock>>
 ) {
-    /**
-     * Get the immediate dominator of a block.
-     * Returns null for the entry block.
-     */
-    fun immediateDominator(block: IRBasicBlock): IRBasicBlock? {
-        return idom[block]
-    }
-
     /**
      * Check if block A dominates block B.
      * A block dominates itself.
@@ -51,14 +29,6 @@ class DominanceInfo private constructor(
     }
 
     /**
-     * Check if block A strictly dominates block B.
-     * A block does not strictly dominate itself.
-     */
-    fun strictlyDominates(a: IRBasicBlock, b: IRBasicBlock): Boolean {
-        return a != b && dominates(a, b)
-    }
-
-    /**
      * Get the dominance frontier of a block.
      * The dominance frontier of a block A is the set of blocks B where:
      * - A dominates a predecessor of B, but
@@ -68,51 +38,13 @@ class DominanceInfo private constructor(
         return dominanceFrontiers[block] ?: emptySet()
     }
 
-    /**
-     * Get children of a block in the dominator tree.
-     */
     fun domTreeChildren(block: IRBasicBlock): Set<IRBasicBlock> {
         return domTreeChildren[block] ?: emptySet()
     }
 
-    /**
-     * Get all blocks dominated by a block (including itself).
-     */
-    fun dominatedBlocks(block: IRBasicBlock): Set<IRBasicBlock> {
-        val result = mutableSetOf<IRBasicBlock>()
-        
-        fun collect(b: IRBasicBlock) {
-            result.add(b)
-            for (child in domTreeChildren(b)) {
-                collect(child)
-            }
-        }
-        
-        collect(block)
-        return result
-    }
-
-    /**
-     * Perform a pre-order traversal of the dominator tree.
-     */
-    fun domTreePreOrder(): List<IRBasicBlock> {
-        val entry = function.basicBlocks.firstOrNull() ?: return emptyList()
-        val result = mutableListOf<IRBasicBlock>()
-        
-        fun visit(block: IRBasicBlock) {
-            result.add(block)
-            for (child in domTreeChildren(block).sortedBy { it.name }) {
-                visit(child)
-            }
-        }
-        
-        visit(entry)
-        return result
-    }
-
     companion object {
         /**
-         * Compute dominance info for a function using Cooper-Harvey-Kennedy algorithm.
+         * Compute dominance info for a function using the Cooper-Harvey-Kennedy algorithm.
          */
         fun compute(function: IRFunction): DominanceInfo {
             val blocks = function.basicBlocks
@@ -142,7 +74,7 @@ class DominanceInfo private constructor(
                     val preds = cfg.predecessors(block)
                     if (preds.isEmpty()) continue
                     
-                    // Find first processed predecessor
+                    // Find the first processed predecessor
                     var newIdom: IRBasicBlock? = null
                     for (pred in preds) {
                         if (pred in idom) {
@@ -167,8 +99,7 @@ class DominanceInfo private constructor(
                     }
                 }
             }
-            
-            // Build dominator tree children map
+
             val domTreeChildren = mutableMapOf<IRBasicBlock, MutableSet<IRBasicBlock>>()
             for (block in blocks) {
                 domTreeChildren[block] = mutableSetOf()

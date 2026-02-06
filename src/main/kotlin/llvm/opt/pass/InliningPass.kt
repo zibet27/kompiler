@@ -14,8 +14,7 @@ import llvm.opt.util.countInstructions
  * Inlining criteria:
  * - Function is not external
  * - Function is not recursive (directly or indirectly)
- * - Function size is below threshold
- * - Call site is not in an infinite loop (optional)
+ * - Function size is below the threshold
  */
 class InliningPass(
     /** Maximum instruction count for a function to be inlined */
@@ -35,8 +34,7 @@ class InliningPass(
         var modified = false
 
         // Build call graph to detect recursion
-        val callGraph = buildCallGraph(module)
-        val recursiveFunctions = findRecursiveFunctions(callGraph)
+        val recursiveFunctions = module.buildCallGraph().findRecursiveFunctions()
 
         // Process each function
         for (function in module.functions.toList()) {
@@ -49,10 +47,8 @@ class InliningPass(
         return modified
     }
 
-    override fun runOnFunction(function: IRFunction): Boolean {
-        // This pass needs module context, so this is a no-op
-        return false
-    }
+    // This pass needs module context, so this is a no-op
+    override fun runOnFunction(function: IRFunction): Boolean = false
 
     /**
      * Process a single function, inlining call sites where beneficial.
@@ -64,7 +60,7 @@ class InliningPass(
         recursiveFunctions: Set<IRFunction>
     ): Boolean {
         var modified = false
-        val originalSize = countInstructions(caller)
+        val originalSize = caller.countInstructions()
         var currentSize = originalSize
 
         // Keep inlining until no more opportunities (re-scan after each inline)
@@ -79,7 +75,7 @@ class InliningPass(
             if (inlined) {
                 modified = true
                 madeProgress = true
-                currentSize = countInstructions(caller)
+                currentSize = caller.countInstructions()
             }
         } while (madeProgress)
 
@@ -109,7 +105,7 @@ class InliningPass(
                 if (!shouldInline(callSite, caller, recursiveFunctions, currentSize, originalSize)) {
                     continue
                 }
-                val calleeSize = countInstructions(callee)
+                val calleeSize = callee.countInstructions()
                 if (calleeSize < bestSize) {
                     bestSize = calleeSize
                     bestSite = callSite
@@ -141,7 +137,7 @@ class InliningPass(
         // Don't inline self-recursive calls
         if (callee == caller) return false
 
-        val calleeSize = countInstructions(callee)
+        val calleeSize = callee.countInstructions()
 
         // Always inline very small functions
         if (calleeSize <= alwaysInlineThreshold) return true
@@ -184,12 +180,12 @@ class InliningPass(
         val callIndex = block.instructions.indexOf(call)
         val instructionsAfterCall = block.instructions.subList(callIndex + 1, block.instructions.size).toList()
 
-        // Remove instructions after call (and the call itself)
+        // Remove instructions after the call (and the call itself)
         while (block.instructions.size > callIndex) {
             block.instructions.removeAt(block.instructions.size - 1)
         }
 
-        // Create continuation block for instructions after the call
+        // Create a continuation block for instructions after the call
         val continueBlock = IRBasicBlock("inl.continue.${cloner.freshName("cont")}")
         continueBlock.instructions.addAll(instructionsAfterCall)
 
@@ -256,7 +252,6 @@ class InliningPass(
                 replaceValueInInstruction(inst, call, newValue)
             }
         }
-        // Also check the continue block
         for (inst in continueBlock.instructions) {
             replaceValueInInstruction(inst, call, newValue)
         }
@@ -351,37 +346,32 @@ class InliningPass(
     /**
      * Build a call graph for the module.
      */
-    private fun buildCallGraph(module: IRModule): Map<IRFunction, Set<IRFunction>> {
-        val callGraph = mutableMapOf<IRFunction, MutableSet<IRFunction>>()
-
-        for (function in module.functions) {
-            callGraph[function] = mutableSetOf()
+    private fun IRModule.buildCallGraph() = buildMap {
+        for (function in functions) {
+            this[function] = mutableSetOf()
 
             if (function.isExternal) continue
 
             for (block in function.basicBlocks) {
                 for (inst in block.instructions) {
-                    if (inst is IRInstruction.Call) {
-                        val callee = resolveCallee(inst.function, module)
-                        if (callee != null) {
-                            callGraph[function]!!.add(callee)
-                        }
+                    if (inst !is IRInstruction.Call) continue
+                    val callee = resolveCallee(inst.function, module = this@buildCallGraph)
+                    if (callee != null) {
+                        this[function]!!.add(callee)
                     }
                 }
             }
         }
-
-        return callGraph
     }
 
     /**
      * Find all functions that are recursive (directly or indirectly).
      */
-    private fun findRecursiveFunctions(callGraph: Map<IRFunction, Set<IRFunction>>): Set<IRFunction> {
+    private fun Map<IRFunction, Set<IRFunction>>.findRecursiveFunctions(): Set<IRFunction> {
         val recursive = mutableSetOf<IRFunction>()
 
-        for (function in callGraph.keys) {
-            if (isRecursive(function, callGraph, mutableSetOf())) {
+        for (function in keys) {
+            if (function.isRecursive(callGraph = this, visited = mutableSetOf())) {
                 recursive.add(function)
             }
         }
@@ -392,21 +382,21 @@ class InliningPass(
     /**
      * Check if a function is recursive (can reach itself through calls).
      */
-    private fun isRecursive(
-        function: IRFunction,
+    private fun IRFunction.isRecursive(
         callGraph: Map<IRFunction, Set<IRFunction>>,
         visited: MutableSet<IRFunction>
     ): Boolean {
-        if (function in visited) return true
-        visited.add(function)
+        if (!visited.add(this)) {
+            return true
+        }
 
-        for (callee in callGraph[function] ?: emptySet()) {
-            if (isRecursive(callee, callGraph, visited)) {
+        for (callee in callGraph[this] ?: emptySet()) {
+            if (callee.isRecursive(callGraph, visited)) {
                 return true
             }
         }
 
-        visited.remove(function)
+        visited.remove(this)
         return false
     }
 

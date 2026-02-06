@@ -22,17 +22,10 @@ class UseDefInfo private constructor(
     private val usesMap: Map<IRValue, List<UseInfo>>,
     private val defBlockMap: Map<IRValue, IRBasicBlock?>
 ) {
-    /**
-     * Get all uses of a value.
-     */
     fun getUses(value: IRValue): List<UseInfo> {
         return usesMap[value] ?: emptyList()
     }
 
-    /**
-     * Get the block where a value is defined.
-     * Returns null for function arguments and constants.
-     */
     fun getDefBlock(value: IRValue): IRBasicBlock? {
         return defBlockMap[value]
     }
@@ -44,12 +37,12 @@ class UseDefInfo private constructor(
         fun compute(function: IRFunction): UseDefInfo {
             val uses = mutableMapOf<IRValue, MutableList<UseInfo>>()
             val defBlock = mutableMapOf<IRValue, IRBasicBlock?>()
-            
+
             // Arguments are defined at function entry (no block)
             for (arg in function.parameters) {
                 defBlock[arg] = null
             }
-            
+
             // Process all instructions
             for (block in function.basicBlocks) {
                 for (instruction in block.instructions) {
@@ -57,47 +50,47 @@ class UseDefInfo private constructor(
                     if (instruction.type != IRType.Void) {
                         defBlock[instruction] = block
                     }
-                    
+
                     // Record uses
-                    for ((index, operand) in getOperands(instruction).withIndex()) {
+                    for ((index, operand) in instruction.operands().withIndex()) {
                         uses.getOrPut(operand) { mutableListOf() }
                             .add(UseInfo(instruction, block, index))
                     }
                 }
             }
-            
+
             return UseDefInfo(function, uses, defBlock)
         }
+    }
+}
 
-        /**
-         * Get all operand values used by an instruction.
-         */
-        fun getOperands(instruction: IRInstruction): List<IRValue> {
-            return when (instruction) {
-                is IRInstruction.Binary -> listOf(instruction.lhs, instruction.rhs)
-                is IRInstruction.Unary -> listOf(instruction.value)
-                is IRInstruction.Alloca -> emptyList()
-                is IRInstruction.Load -> listOf(instruction.ptr)
-                is IRInstruction.Store -> listOf(instruction.value, instruction.ptr)
-                is IRInstruction.GEP -> listOf(instruction.ptr) + instruction.indices
-                is IRInstruction.Call -> listOf(instruction.function) + instruction.args
-                is IRInstruction.Ret -> listOfNotNull(instruction.value)
-                is IRInstruction.Br -> emptyList()
-                is IRInstruction.CondBr -> listOf(instruction.condition)
-                is IRInstruction.Phi -> instruction.incoming.map { it.first }
-                is IRInstruction.ICmp -> listOf(instruction.lhs, instruction.rhs)
-                is IRInstruction.FCmp -> listOf(instruction.lhs, instruction.rhs)
-                is IRInstruction.Cast -> listOf(instruction.value)
-            }
-        }
+/**
+ * Get all operand values used by an instruction.
+ */
+fun IRInstruction.operands(): List<IRValue> {
+    return when (this) {
+        is IRInstruction.Binary -> listOf(lhs, rhs)
+        is IRInstruction.Unary -> listOf(value)
+        is IRInstruction.Alloca -> emptyList()
+        is IRInstruction.Load -> listOf(ptr)
+        is IRInstruction.Store -> listOf(value, ptr)
+        is IRInstruction.GEP -> listOf(ptr) + indices
+        is IRInstruction.Call -> listOf(function) + args
+        is IRInstruction.Ret -> listOfNotNull(value)
+        is IRInstruction.Br -> emptyList()
+        is IRInstruction.CondBr -> listOf(condition)
+        is IRInstruction.Phi -> incoming.map { it.first }
+        is IRInstruction.ICmp -> listOf(lhs, rhs)
+        is IRInstruction.FCmp -> listOf(lhs, rhs)
+        is IRInstruction.Cast -> listOf(value)
     }
 }
 
 /**
  * Helper to replace all uses of a value with another value.
  */
-fun replaceAllUsesWith(oldValue: IRValue, newValue: IRValue, function: IRFunction) {
-    for (block in function.basicBlocks) {
+fun IRFunction.replaceAllUses(oldValue: IRValue, newValue: IRValue) {
+    for (block in basicBlocks) {
         for (instruction in block.instructions) {
             replaceUsesInInstruction(instruction, oldValue, newValue)
         }
@@ -117,16 +110,19 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 setField(instruction, "rhs", newValue)
             }
         }
+
         is IRInstruction.Unary -> {
             if (instruction.value === oldValue) {
                 setField(instruction, "value", newValue)
             }
         }
+
         is IRInstruction.Load -> {
             if (instruction.ptr === oldValue) {
                 setField(instruction, "ptr", newValue)
             }
         }
+
         is IRInstruction.Store -> {
             if (instruction.value === oldValue) {
                 setField(instruction, "value", newValue)
@@ -135,6 +131,7 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 setField(instruction, "ptr", newValue)
             }
         }
+
         is IRInstruction.GEP -> {
             if (instruction.ptr === oldValue) {
                 setField(instruction, "ptr", newValue)
@@ -145,6 +142,7 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 setField(instruction, "indices", newIndices)
             }
         }
+
         is IRInstruction.Call -> {
             if (instruction.function === oldValue) {
                 setField(instruction, "function", newValue)
@@ -155,16 +153,19 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 setField(instruction, "args", newArgs)
             }
         }
+
         is IRInstruction.Ret -> {
             if (instruction.value === oldValue) {
                 setField(instruction, "value", newValue)
             }
         }
+
         is IRInstruction.CondBr -> {
             if (instruction.condition === oldValue) {
                 setField(instruction, "condition", newValue)
             }
         }
+
         is IRInstruction.Phi -> {
             for (i in instruction.incoming.indices) {
                 val (value, block) = instruction.incoming[i]
@@ -173,6 +174,7 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 }
             }
         }
+
         is IRInstruction.ICmp -> {
             if (instruction.lhs === oldValue) {
                 setField(instruction, "lhs", newValue)
@@ -181,6 +183,7 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 setField(instruction, "rhs", newValue)
             }
         }
+
         is IRInstruction.FCmp -> {
             if (instruction.lhs === oldValue) {
                 setField(instruction, "lhs", newValue)
@@ -189,13 +192,18 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
                 setField(instruction, "rhs", newValue)
             }
         }
+
         is IRInstruction.Cast -> {
             if (instruction.value === oldValue) {
                 setField(instruction, "value", newValue)
             }
         }
-        is IRInstruction.Alloca -> { /* no value operands */ }
-        is IRInstruction.Br -> { /* no value operands */ }
+
+        is IRInstruction.Alloca -> { /* no value operands */
+        }
+
+        is IRInstruction.Br -> { /* no value operands */
+        }
     }
 }
 
@@ -203,7 +211,6 @@ fun replaceUsesInInstruction(instruction: IRInstruction, oldValue: IRValue, newV
  * Helper to set a field via reflection.
  * This is needed because IR instruction fields are val.
  */
-@Suppress("UNCHECKED_CAST")
 private fun setField(obj: Any, fieldName: String, value: Any?) {
     val field = obj::class.java.getDeclaredField(fieldName)
     field.isAccessible = true

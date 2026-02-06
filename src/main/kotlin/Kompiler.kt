@@ -36,11 +36,11 @@ class Kompiler(
         // Run LLVM IR optimizations
         val passConfig = PassConfig(printVisualization = optConfig.printVisualization)
         val passManager = PassManager(passConfig)
-        if (optConfig.enableMem2Reg) {
-            passManager.add(Mem2RegPass())
-        }
         if (optConfig.enableInlining) {
             passManager.add(InliningPass())
+        }
+        if (optConfig.enableMem2Reg) {
+            passManager.add(Mem2RegPass())
         }
         passManager.runOnModule(irModule)
 

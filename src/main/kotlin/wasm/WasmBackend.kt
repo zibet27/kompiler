@@ -29,87 +29,85 @@ class WasmBackend {
     /**
      * Compile an LLVM IR module to WebAssembly binary format
      */
-    fun compile(module: IRModule): ByteArray {
-        return buildWasmModule {
-            // Type Section: Define all function signatures
-            val typeSection = module.buildTypeSection()
-            writeSection(WasmSection.TYPE) {
-                writeBytes(typeSection)
-            }
+    fun compile(module: IRModule): ByteArray = buildWasmModule {
+        // Type Section: Define all function signatures
+        val typeSection = module.buildTypeSection()
+        writeSection(WasmSection.TYPE) {
+            writeBytes(typeSection)
+        }
 
-            // Import Section: Import external functions
-            val imports = module.buildImportSection()
-            if (imports.isNotEmpty()) {
-                writeSection(WasmSection.IMPORT) {
-                    writeVector(imports) { import ->
-                        writeName(import.moduleName)
-                        writeName(import.name)
-                        writeByte(0x00) // function import
-                        writeU32Leb(import.typeIndex)
-                    }
+        // Import Section: Import external functions
+        val imports = module.buildImportSection()
+        if (imports.isNotEmpty()) {
+            writeSection(WasmSection.IMPORT) {
+                writeVector(imports) { import ->
+                    writeName(import.moduleName)
+                    writeName(import.name)
+                    writeByte(0x00) // function import
+                    writeU32Leb(import.typeIndex)
                 }
             }
+        }
 
-            // Function Section: Declare function type indices
-            val functionIndices = module.buildFunctionSection()
-            writeSection(WasmSection.FUNCTION) {
-                writeVector(functionIndices) { idx -> writeU32Leb(idx) }
+        // Function Section: Declare function type indices
+        val functionIndices = module.buildFunctionSection()
+        writeSection(WasmSection.FUNCTION) {
+            writeVector(functionIndices) { idx -> writeU32Leb(idx) }
+        }
+
+        // Table Section: Declare a function table for indirect calls
+        val numFunctions = module.functions.size
+        writeSection(WasmSection.TABLE) {
+            writeVector(listOf(WasmTableType())) {
+                writeByte(0x70) // funcref type
+                writeByte(0x00) // no maximum limit
+                writeU32Leb(numFunctions) // minimum size
             }
+        }
 
-            // Table Section: Declare a function table for indirect calls
-            val numFunctions = module.functions.size
-            writeSection(WasmSection.TABLE) {
-                writeVector(listOf(WasmTableType())) {
-                    writeByte(0x70) // funcref type
-                    writeByte(0x00) // no maximum limit
-                    writeU32Leb(numFunctions) // minimum size
+        // Memory Section: Declare linear memory
+        writeSection(WasmSection.MEMORY) {
+            writeVector(listOf(WasmLimits(min = 1, max = 100))) { limits ->
+                limits.encode(this)
+            }
+        }
+
+        // Export Section: Export functions
+        val exports = buildExportSection(module)
+        writeSection(WasmSection.EXPORT) {
+            writeVector(exports) { export ->
+                writeName(export.name)
+                writeByte(export.kind.code)
+                writeU32Leb(export.index)
+            }
+        }
+
+        // Build data segments first (populates globalAddressMap)
+        val dataSegments = buildDataSection(module)
+
+        // Element Section: Populate the function table with all functions
+        val elementSegments = buildElementSection(module)
+        if (elementSegments.isNotEmpty()) {
+            writeSection(WasmSection.ELEMENT) {
+                writeVector(elementSegments) { segment ->
+                    writeBytes(segment)
                 }
             }
+        }
 
-            // Memory Section: Declare linear memory
-            writeSection(WasmSection.MEMORY) {
-                writeVector(listOf(WasmLimits(min = 1, max = 100))) { limits ->
-                    limits.encode(this)
-                }
+        // Code Section: Function bodies (uses globalAddressMap)
+        val codeBodies = module.buildCodeSection()
+        writeSection(WasmSection.CODE) {
+            writeVector(codeBodies) { body ->
+                writeBytes(body)
             }
+        }
 
-            // Export Section: Export functions
-            val exports = buildExportSection(module)
-            writeSection(WasmSection.EXPORT) {
-                writeVector(exports) { export ->
-                    writeName(export.name)
-                    writeByte(export.kind.code)
-                    writeU32Leb(export.index)
-                }
-            }
-
-            // Build data segments first (populates globalAddressMap)
-            val dataSegments = buildDataSection(module)
-
-            // Element Section: Populate the function table with all functions
-            val elementSegments = buildElementSection(module)
-            if (elementSegments.isNotEmpty()) {
-                writeSection(WasmSection.ELEMENT) {
-                    writeVector(elementSegments) { segment ->
-                        writeBytes(segment)
-                    }
-                }
-            }
-
-            // Code Section: Function bodies (uses globalAddressMap)
-            val codeBodies = module.buildCodeSection()
-            writeSection(WasmSection.CODE) {
-                writeVector(codeBodies) { body ->
-                    writeBytes(body)
-                }
-            }
-
-            // Data Section: Initialize memory with global data
-            if (dataSegments.isNotEmpty()) {
-                writeSection(WasmSection.DATA) {
-                    writeVector(dataSegments) { segment ->
-                        writeBytes(segment)
-                    }
+        // Data Section: Initialize memory with global data
+        if (dataSegments.isNotEmpty()) {
+            writeSection(WasmSection.DATA) {
+                writeVector(dataSegments) { segment ->
+                    writeBytes(segment)
                 }
             }
         }

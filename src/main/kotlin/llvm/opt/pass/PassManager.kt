@@ -1,39 +1,25 @@
 package llvm.opt.pass
 
-import llvm.IRFunction
 import llvm.IRModule
 import llvm.IRPrinter
-import kotlin.reflect.KClass
 
 /**
  * Manages and executes optimization passes.
  *
- * The PassManager orchestrates the execution of optimization passes,
- * handles analysis caching, and supports fixed-point iteration.
+ * The PassManager orchestrates the execution of optimization passes.
  */
 class PassManager(
     private val config: PassConfig = PassConfig()
 ) {
     private val passes = mutableListOf<OptimizationPass>()
 
-    // Analysis result caches
-    private val functionAnalysisCache = mutableMapOf<Pair<KClass<*>, IRFunction>, Any?>()
-    private val moduleAnalysisCache = mutableMapOf<KClass<*>, Any?>()
-
-    /**
-     * Add an optimization pass to the pipeline.
-     */
-    fun add(pass: OptimizationPass): PassManager {
-        passes.add(pass)
-        return this
-    }
+    fun add(pass: OptimizationPass) = passes.add(pass)
 
     /**
      * Run all registered passes on the module.
      * @return true if any pass modified the module
      */
     fun runOnModule(module: IRModule): Boolean {
-        var modified = false
         val printer = if (config.printVisualization) IRPrinter() else null
 
         if (config.printVisualization) {
@@ -44,6 +30,7 @@ class PassManager(
             println(printer!!.print(module))
         }
 
+        var modified = false
         for (pass in passes) {
             if (config.enableLogging) {
                 println("Running pass: ${pass.name}")
@@ -57,11 +44,7 @@ class PassManager(
 
             if (passModified) {
                 modified = true
-                invalidateAnalyses()
-
-                if (config.enableLogging) {
-                    println("  -> Modified")
-                }
+                if (config.enableLogging) println("  -> Modified")
 
                 if (config.printVisualization) {
                     println("\n--- AFTER ${pass.name.uppercase()} ---")
@@ -114,19 +97,9 @@ class PassManager(
                 break
             }
             anyModified = true
-            invalidateAnalyses()
             iteration++
         } while (iteration < pass.maxIterations)
 
         return anyModified
-    }
-
-    /**
-     * Invalidate all cached analysis results.
-     * Called after any transformation pass modifies the IR.
-     */
-    fun invalidateAnalyses() {
-        functionAnalysisCache.clear()
-        moduleAnalysisCache.clear()
     }
 }

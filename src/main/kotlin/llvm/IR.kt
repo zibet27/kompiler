@@ -42,8 +42,8 @@ class IRBasicBlock(val name: String) : IRVisitable {
     override fun <R> accept(visitor: IRVisitor<R>): R = visitor.visitBasicBlock(this)
 
     val terminator: IRInstruction?
-        get() = instructions.lastOrNull()?.let {
-            if (it is IRInstruction.Ret || it is IRInstruction.Br || it is IRInstruction.CondBr) it else null
+        get() = instructions.lastOrNull()?.takeIf {
+            it is IRInstruction.Ret || it is IRInstruction.Br || it is IRInstruction.CondBr
         }
 }
 
