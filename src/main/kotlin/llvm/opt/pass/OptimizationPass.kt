@@ -2,6 +2,8 @@ package llvm.opt.pass
 
 import llvm.IRFunction
 import llvm.IRModule
+import llvm.opt.analysis.AnalysisPass
+import kotlin.reflect.KClass
 
 /**
  * Base interface for all optimization passes.
@@ -10,7 +12,12 @@ import llvm.IRModule
  * They return true if the IR was modified, false otherwise.
  */
 interface OptimizationPass {
+    /** Unique name for this pass */
     val name: String
+
+    /** List of analysis passes this optimization depends on */
+    val dependencies: List<KClass<out AnalysisPass<*, *>>>
+        get() = emptyList()
 
     /**
      * Run optimization on the entire module.

@@ -6,12 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="84d9dcd5-1694-4f34-8363-8e0a2ef52b91" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Kompiler.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/InliningPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/InliningPass.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/Mem2RegPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/Mem2RegPass.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/AnalysisPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/analysis/AnalysisPass.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/OptimizationPass.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/OptimizationPass.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/PassManager.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/llvm/opt/pass/PassManager.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,7 +16,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="126" />
+    <option name="cachedIndexableFilesCount" value="134" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">

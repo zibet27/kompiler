@@ -1,61 +1,140 @@
 # Kompiler 🧩
 
-**Kompiler** is a small compiler for a simple **Kode** programming language written in **Kotlin Multiplatform**.  
-It translates a simple, statically typed language into **WebAssembly (WASM)** and can run both on the **JVM** and **in the browser**.
-
-> A compiler that runs in your browser, visualizes its IR, and lets you play with optimizations — because learning compilers should be interactive.
+**Kompiler** is a compiler for the **Kode** programming language written in **Kotlin**.
+It translates a simple, statically typed language into **WebAssembly (WASM)** via **LLVM IR** with multiple optimization
+passes.
 
 ---
 
 ## 🚀 Overview
 
-**Kompiler** explores how a modern compiler can be built from scratch, end to end —  
-from parsing and semantic analysis to LLVM IR generation and WASM output.
+**Kompiler** demonstrates how a compiler works:
 
-The project’s focus is educational: understanding how real compilers are structured while experimenting with modern tooling and deployment targets.  
-The multiplatform approach keeps the compiler logic shared and platform-independent, while separate modules handle CLI and browser execution.
+1. **Lexing & Parsing** → Abstract Syntax Tree (AST)
+2. **Semantic Analysis** → Type checking
+3. **Code Generation** → LLVM IR
+4. **Optimization** → mem2reg (SSA promotion), function inlining
+5. **Backend** → WebAssembly bytecode
+
+The project prioritizes education and experimentation with real compiler techniques.
 
 ---
 
 ## 🧩 Architecture
 
-- **🔗 Common Core:** shared across all targets (no platform dependencies)
-- **⚡ CLI Module:** compiles and runs programs using LLVM and Wasmtime
-- **🌐 Web Module:** visualizes IR and runs compiled code in the browser 
+**Kompiler** consists of several pipeline stages:
+
+- **Parser** → Grammar-based parsing with custom recursive descent
+- **Type Checker** → Static type analysis and error reporting
+- **Codegen** → LLVM IR generation with an SSA form
+- **Optimization Passes** → mem2reg, inlining (with visualization support)
+- **WASM Backend** → Direct LLVM IR to WebAssembly compilation (no LLVM dependency)
 
 ---
 
 ## 📜 Example
 
-```
+```kode
+alien fun print_int{ x: i32 }: void;
+
 fun add{ a: i32, b: i32 }: i32 (
     a + b;
 );
 
-fun main{}: void (
-    add{ 2, 3 };
+fun main{}: i32 (
+    i32 result = add{ 2, 3 };
+    print_int{ result };
+    0;
 );
 ```
 
+### Basic Compilation
+
 ```bash
-$ kompiler example.kode -o example.wasm
-$ wasmtime example.wasm
-# => 5
+./gradlew run --args="example.kode"
+# Compiles to build/out/example.wasm
 ```
 
-## 🗺️ Roadmap
+### Run After Compilation
 
-- [ ] Basic grammar and AST
-- [ ] Semantic analysis
-- [ ] IR generation
-- [ ] Optimisations...
-- [ ] WASM emission
-- [ ] Browser UI with IR visualization
-- [ ] Live execution and optimization toggles
+```bash
+./gradlew run --args="example.kode --run"
+# Compiles and executes using Node.js
+```
+
+### Visualize Optimizations
+
+```bash
+./gradlew run --args="example.kode --print-opt"
+# Shows IR before and after each optimization pass
+```
+
+### Advanced Options
+
+```bash
+# Disable specific optimizations
+./gradlew run --args="example.kode --no-mem2reg --no-inline"
+
+# Print WebAssembly text format (requires wabt)
+./gradlew run --args="example.kode --print-wasm"
+
+# Combine options
+./gradlew run --args="example.kode --print-opt --run"
+```
+
+---
+
+## 🎓 Optimization Examples
+
+The `examples/opt/` directory contains programs demonstrating different optimizations:
+
+| Example                   | Description                                       |
+|---------------------------|---------------------------------------------------|
+| **1_mem2reg_simple**      | Basic stack-to-register promotion                 |
+| **2_mem2reg_conditional** | PHI node insertion at control flow merge points   |
+| **3_inlining_simple**     | Single function inlining                          |
+| **4_inlining_nested**     | Nested function inlining (square → multiply)      |
+| **5_mem2reg_loop**        | PHI nodes for loop variables                      |
+| **6_combined**            | Both mem2reg and inlining working together        |
+| **7_no_optimize**         | Comparison example with various flag combinations |
+
+### Running Examples
+
+```bash
+# See mem2reg optimization in action
+./gradlew run --args="examples/opt/1_mem2reg_simple.kode --print-opt"
+
+# Compare with optimization disabled
+./gradlew run --args="examples/opt/1_mem2reg_simple.kode --print-opt --no-mem2reg"
+
+# See function inlining
+./gradlew run --args="examples/opt/3_inlining_simple.kode --print-opt"
+
+# See nested inlining (square calls multiply, both get inlined)
+./gradlew run --args="examples/opt/4_inlining_nested.kode --print-opt"
+```
+
+---
+
+## 🛠️ CLI Options
+
+```
+Usage: kompiler <path-to-file> [options]
+
+Options:
+  --run           Run the compiled WebAssembly after compilation
+  --no-mem2reg    Disable mem2reg optimization (alloca to SSA promotion)
+  --no-inline     Disable function inlining optimization
+  --print-opt     Print IR visualization before/after each optimization pass
+  --print-wasm    Print generated WebAssembly text format (requires wabt/wasm2wat)
+  -h, --help      Show this help message
+```
+
+---
 
 ---
 
 ## 🧠 Acknowledgments
 
 Developed as part of a NIE-GEN (Code Generators) course project.
-The goal is to learn compiler design hands-on, experiment with Kotlin Multiplatform.
+The goal is to learn compiler design hands-on.

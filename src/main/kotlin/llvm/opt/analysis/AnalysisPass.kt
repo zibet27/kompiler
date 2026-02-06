@@ -18,7 +18,6 @@ interface AnalysisPass<T, R> {
 
     /**
      * Run the analysis on the target.
-     * @return The analysis result
      */
     fun analyze(target: T): R
 }
@@ -32,14 +31,3 @@ interface FunctionAnalysis<R> : AnalysisPass<IRFunction, R>
  * Analysis that operates on the entire module.
  */
 interface ModuleAnalysis<R> : AnalysisPass<IRModule, R>
-
-/**
- * Result of an analysis that can be invalidated.
- */
-interface AnalysisResult {
-    /**
-     * Check if this result is still valid.
-     * Results are invalidated when the IR is modified.
-     */
-    val isValid: Boolean
-}

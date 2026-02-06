@@ -1,0 +1,16 @@
+// Demonstrates mem2reg optimization: stack variables promoted to SSA registers
+// Before: alloca + store + load pattern
+// After: direct value usage (no memory operations)
+
+alien fun print_int{ x: i32 }: void;
+
+fun main{}: i32 (
+    i32 a = 10;
+    i32 b = 20;
+    i32 c = a + b;
+    print_int{ c };
+    0;
+);
+
+// Run with: ./gradlew run --args="examples/opt/1_mem2reg_simple.kode --print-opt"
+// EXPECTED OUTPUT: 30
