@@ -302,35 +302,32 @@ class WasmBackend {
         var size = 0
         for (block in basicBlocks) {
             for (instruction in block.instructions) {
-                if (instruction is IRInstruction.Alloca) {
-                    val allocaSize = when (val type = instruction.allocatedType) {
-                        is IRType.Int -> (type.bits + 7) / 8
-                        is IRType.Float -> 4
-                        is IRType.Double -> 8
-                        is IRType.Pointer -> 4
-                        is IRType.Array -> type.size * type.elementType.calculateSize()
-                        is IRType.Struct -> type.calculateSize()
-                        else -> 0
-                    }
-                    // Align to the 4-byte boundary
-                    val alignedSize = (allocaSize + 3) and 3.inv()
-                    size += alignedSize
+                if (instruction !is IRInstruction.Alloca) continue
+                val allocaSize = when (val type = instruction.allocatedType) {
+                    is IRType.Int -> (type.bits + 7) / 8
+                    is IRType.Float -> 4
+                    is IRType.Double -> 8
+                    is IRType.Pointer -> 4
+                    is IRType.Array -> type.size * type.elementType.calculateSize()
+                    is IRType.Struct -> type.calculateSize()
+                    else -> error("Cannot calculate size for unsupported type: $type")
                 }
+                // Align to the 4-byte boundary
+                val alignedSize = (allocaSize + 3) and 3.inv()
+                size += alignedSize
             }
         }
         return size
     }
 
-    private fun IRType.calculateSize(): Int {
-        return when (this) {
-            is IRType.Int -> (bits + 7) / 8
-            is IRType.Float -> 4
-            is IRType.Double -> 8
-            is IRType.Pointer -> 4
-            is IRType.Array -> size * elementType.calculateSize()
-            is IRType.Struct -> this.calculateSize()
-            else -> 0
-        }
+    private fun IRType.calculateSize(): Int = when (this) {
+        is IRType.Int -> (bits + 7) / 8
+        is IRType.Float -> 4
+        is IRType.Double -> 8
+        is IRType.Pointer -> 4
+        is IRType.Array -> size * elementType.calculateSize()
+        is IRType.Struct -> this.calculateSize()
+        else -> 0
     }
 
     private fun IRType.Struct.calculateSize(): Int {
@@ -351,16 +348,13 @@ class WasmBackend {
 
         // Add imports first
         for (func in module.functions) {
-            if (func.isExternal) {
-                functionIndexMap[func] = index++
-            }
+            if (!func.isExternal) continue
+            functionIndexMap[func] = index++
         }
-
         // Then add defined functions
         for (func in module.functions) {
-            if (!func.isExternal) {
-                functionIndexMap[func] = index++
-            }
+            if (func.isExternal) continue
+            functionIndexMap[func] = index++
         }
 
         // Step 0: Reorder basic blocks for better CFG layout
@@ -385,7 +379,11 @@ class WasmBackend {
             writeByte(type.code)
         }
 
-        // Step 4: Emit instructions using production Relooper
+        // Step 4: Convert CFG to a structured control flow using Relooper
+        val relooper = Relooper(function = this, phiResolver)
+        val structuredCFG = relooper.reloop()
+
+        // Step 5: Emit WebAssembly bytecode from structured CFG
         val instructionEmitter = InstructionEmitter(
             bodyEmitter,
             localsManager,
@@ -394,8 +392,9 @@ class WasmBackend {
             typeIndexMap,
             stackFrameStart
         )
-        val relooper = Relooper(function = this, bodyEmitter, instructionEmitter, phiResolver)
-        relooper.reloop()
+        val cfgEmitter = StructuredCFGEmitter(bodyEmitter, instructionEmitter, phiResolver)
+        cfgEmitter.emit(structuredCFG)
+        bodyEmitter.writeByte(WasmOp.END)
 
         // Encode function body with size prefix
         val bodyBytes = bodyEmitter.toByteArray()
